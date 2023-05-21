@@ -1,10 +1,7 @@
-from view import globalView as gb
+from controllers import global_controller
 
 def main():
-    gb.displayWelcomingMessage()
-    pass
-
-
+    global_controller.launch()
 
 if __name__ == "__main__":
     main()
