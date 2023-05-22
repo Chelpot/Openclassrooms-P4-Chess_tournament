@@ -23,15 +23,15 @@ def ask_player_info_for_creation():
     """Ask the player with a form for informations needed to create a Player"""
     is_valid = False
     while not is_valid:
-        data=[]
+        data={}
         print("Prénom : ")
-        data.append(input())
+        data['first_name'] = input()
         print("Nom : ")
-        data.append(input())
+        data['last_name'] = input()
         print("Date de naissance (JJ/MM/AAAA) : ")
-        data.append(input())
+        data['birth_date'] = input()
         print("Identifiant national d'échecs : ")
-        data.append(input())
+        data['national_chess_id'] = input()
         print("Validez vous les informations ? Y/N : ")
         if input() == 'Y':
             is_valid = True

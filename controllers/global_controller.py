@@ -50,15 +50,15 @@ def create_player():
     """Create a player"""
     data = v.ask_player_info_for_creation()
     #Check if first name is long enough
-    if len(data[0]) >= 3:
+    if len(data['first_name']) >= 3:
         #Check if last name is long enough
-        if len(data[1]) >= 3:
+        if len(data['last_name']) >= 3:
             #Check if birthdate is correct
-            if is_birthdate_correct(data[2]):
+            if is_birthdate_correct(data['birth_date']):
                 #Check if national chess id is correct
-                if is_national_chess_id_correct(data[3]):
+                if is_national_chess_id_correct(data['national_chess_id']):
                     try:
-                        Player(data[0], data[1], data[2], data[3])
+                        Player(data['first_name'], data['last_name'], data['birth_date'], data['national_chess_id'])
                     except TypeError as error:
                         print(error)
 
