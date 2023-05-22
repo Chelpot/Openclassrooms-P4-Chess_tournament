@@ -1,3 +1,10 @@
+
+
+menu_options = {
+            1: 'Créer un nouveau joueur',
+            8: 'Quitter'
+        }
+
 def display_welcoming_message():
     print("*************************************************")
     print("*   Bienvenue, vous utilisez actuellement un    *")
@@ -8,8 +15,8 @@ def display_welcoming_message():
 def display_action_pannel():
     print("*************************************************")
     print("Entrez le numéro de l'action que vous souhaitez entreprendre :")
-    print("1. Créer un joueur")
-
+    for option in menu_options:
+        print(f"{option}: {menu_options[option]}")
 
 def ask_player_info_for_creation():
     """Ask the player with a form for informations needed to create a Player"""

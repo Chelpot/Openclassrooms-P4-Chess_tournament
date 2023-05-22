@@ -1,4 +1,4 @@
-class turn:
+class Turn:
 
     def __init__(self, name):
         self.name = name

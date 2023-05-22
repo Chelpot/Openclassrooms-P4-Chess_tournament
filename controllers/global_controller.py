@@ -2,9 +2,9 @@
 import datetime as dt
 
 from view import global_view as v
-from models.player import *
-from models.tournament import *
-from models.turn import *
+import models.player
+import models.tournament 
+import models.turn 
 
 def launch():
     running = True
@@ -12,16 +12,20 @@ def launch():
     while running:
         v.display_action_pannel()
         choice = input()
-        call_function(choice)
+        running = call_function(choice)
 
 
 def call_function(choice):
     if choice == "1":
         create_player()
+    #Exit
+    if choice == "8":
+        return False
+    return True
 
 def is_birthdate_correct(birthdate: str):
+    """Check if birthdate follow the layout DD/MM/YYYY and is a valid date"""
     is_correct = True
-    #Check if birthdate follow the layout DD/MM/YYYY
     if len(birthdate) == 10:
         if birthdate.count("/") == 2:
             splited_birthdate = birthdate.split("/")
@@ -36,7 +40,7 @@ def is_birthdate_correct(birthdate: str):
     return is_correct
 
 def is_national_chess_id_correct(id: str):
-    #Check if id follow the layout AB12345
+    """Check if id follow the layout AB12345"""
     return id[:2].isalpha() and id[5:].isnumeric() and len(id)==7
     
 
@@ -55,5 +59,4 @@ def create_player():
             if is_birthdate_correct(data[2]):
                 #Check if national chess id is correct
                 if is_national_chess_id_correct(data[3]):
-                    player = Player(data[0], data[1], data[2], data[3])
-
+                    Player(data[0], data[1], data[2], data[3])
