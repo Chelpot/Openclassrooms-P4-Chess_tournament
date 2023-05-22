@@ -2,9 +2,9 @@
 import datetime as dt
 
 from view import global_view as v
-import models.player
-import models.tournament 
-import models.turn 
+from models.player import Player
+from models.tournament import Tournament
+from models.turn import Turn
 
 def launch():
     running = True
@@ -60,3 +60,6 @@ def create_player():
                 #Check if national chess id is correct
                 if is_national_chess_id_correct(data[3]):
                     Player(data[0], data[1], data[2], data[3])
+
+def create_tournament():
+    
