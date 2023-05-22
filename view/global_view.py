@@ -2,6 +2,7 @@
 
 menu_options = {
             1: 'Créer un nouveau joueur',
+            2: 'Créer un nouveau tournois',
             8: 'Quitter'
         }
 
@@ -37,7 +38,28 @@ def ask_player_info_for_creation():
             return data
         else:
             return None
-
+        
+def ask_tournament_info_for_creation():
+    """Ask the user informations to create a tournament"""
+    is_valid = False
+    while not is_valid:
+        data={}
+        print("Lieu : ")
+        data['place'] = input()
+        print("Nom du tournois : ")
+        data['name'] = input()
+        print("Date de commencement : ")
+        data['starting_date'] = input()
+        print("Date de fin : ")
+        data['ending_date'] = input()
+        print("Description du tournois : (Facultatif)")
+        data['description'] = input()
+        print("Validez vous les informations ? Y/N : ")
+        if input() == 'Y':
+            is_valid = True
+            return data
+        else:
+            return None
 
 
 def display_players():

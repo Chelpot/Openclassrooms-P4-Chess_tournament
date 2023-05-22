@@ -18,6 +18,8 @@ def launch():
 def call_function(choice):
     if choice == "1":
         create_player()
+    if choice == "2":
+        create_tournament()
     #Exit
     if choice == "8":
         return False
@@ -45,13 +47,9 @@ def is_national_chess_id_correct(id: str):
     
 
 def create_player():
-    """create a player"""
+    """Create a player"""
     data = v.ask_player_info_for_creation()
     #Check if first name is long enough
-    print(data[0])
-    print(data[1])
-    print(data[2])
-    print(data[3])
     if len(data[0]) >= 3:
         #Check if last name is long enough
         if len(data[1]) >= 3:
@@ -59,7 +57,16 @@ def create_player():
             if is_birthdate_correct(data[2]):
                 #Check if national chess id is correct
                 if is_national_chess_id_correct(data[3]):
-                    Player(data[0], data[1], data[2], data[3])
+                    try:
+                        Player(data[0], data[1], data[2], data[3])
+                    except TypeError as error:
+                        print(error)
+
 
 def create_tournament():
-    
+    """Create a tournament"""
+    data = v.ask_tournament_info_for_creation()
+    try:
+        Tournament(data['name'], data['place'], data['starting_date'], data['ending_date'], data['description'])
+    except TypeError as error:
+        print(error)
