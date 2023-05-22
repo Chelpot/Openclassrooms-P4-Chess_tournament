@@ -11,17 +11,27 @@ def display_action_pannel():
     print("1. Créer un joueur")
 
 
-def display_create_player(step=0):
-    if step == 0:
+def ask_player_info_for_creation():
+    """Ask the player with a form for informations needed to create a Player"""
+    is_valid = False
+    while not is_valid:
+        data=[]
         print("Prénom : ")
-    if step == 1:    
+        data.append(input())
         print("Nom : ")
-    if step == 2:
+        data.append(input())
         print("Date de naissance (JJ/MM/AAAA) : ")
-    if step == 3:
+        data.append(input())
         print("Identifiant national d'échecs : ")
-    if step == 4:
-        print("Toutes les informations ont été saisies")
+        data.append(input())
+        print("Validez vous les informations ? Y/N : ")
+        if input() == 'Y':
+            is_valid = True
+            return data
+        else:
+            return None
+
+
 
 def display_players():
     """Display a list of all players in DB sorted by alphabetical order."""

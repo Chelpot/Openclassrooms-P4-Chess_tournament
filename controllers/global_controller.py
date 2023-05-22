@@ -1,5 +1,10 @@
+
+import datetime as dt
+
 from view import global_view as v
-from models import tournament, turn, player
+from models.player import *
+from models.tournament import *
+from models.turn import *
 
 def launch():
     running = True
@@ -14,17 +19,41 @@ def call_function(choice):
     if choice == "1":
         create_player()
 
+def is_birthdate_correct(birthdate: str):
+    is_correct = True
+    #Check if birthdate follow the layout DD/MM/YYYY
+    if len(birthdate) == 10:
+        if birthdate.count("/") == 2:
+            splited_birthdate = birthdate.split("/")
+            day_date = int(splited_birthdate[0])
+            month_date = int(splited_birthdate[1])
+            year_date = int(splited_birthdate[2])
+            #Check if the date is a correct one
+            try:
+                dt.datetime(year_date, month_date, day_date)
+            except ValueError:
+               is_correct = False
+    return is_correct
+
+def is_national_chess_id_correct(id: str):
+    #Check if id follow the layout AB12345
+    return id[:2].isalpha() and id[5:].isnumeric() and len(id)==7
+    
 
 def create_player():
     """create a player"""
-    is_valid = False
-    step = 0
-    data = []
-    while not is_valid:
-        v.display_create_player(step)
-        if step < 4:
-            answer = input()
-            step += 1
-        else:
-            is_valid = True
-    
+    data = v.ask_player_info_for_creation()
+    #Check if first name is long enough
+    print(data[0])
+    print(data[1])
+    print(data[2])
+    print(data[3])
+    if len(data[0]) >= 3:
+        #Check if last name is long enough
+        if len(data[1]) >= 3:
+            #Check if birthdate is correct
+            if is_birthdate_correct(data[2]):
+                #Check if national chess id is correct
+                if is_national_chess_id_correct(data[3]):
+                    player = Player(data[0], data[1], data[2], data[3])
+
