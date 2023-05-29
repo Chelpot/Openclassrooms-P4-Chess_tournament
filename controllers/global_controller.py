@@ -1,14 +1,34 @@
-
+import os
 import datetime as dt
+import json
 
 from view import global_view as v
 from models.player import Player
 from models.tournament import Tournament
 from models.turn import Turn
 
+DB_FILE_NAME = "database.json"
+TOURNAMENT = "tournament"
+PLAYERS = "players"
+TURN = "turn"
+INIT_DB_JSON = """
+{
+    "players": [
+    
+    ],
+    "tournament": [
+    
+    ],
+    "turns": [
+    
+    ],
+}
+"""
+
 def launch():
     running = True
     v.display_welcoming_message()
+    init_database()
     while running:
         v.display_action_pannel()
         choice = input()
@@ -58,15 +78,41 @@ def create_player():
                 #Check if national chess id is correct
                 if is_national_chess_id_correct(data['national_chess_id']):
                     try:
-                        Player(data['first_name'], data['last_name'], data['birth_date'], data['national_chess_id'])
+                        a = Player(data['first_name'], data['last_name'], data['birth_date'], data['national_chess_id'])
+                        save(PLAYERS, a, data)
+                        print(a)
                     except TypeError as error:
                         print(error)
+                    except Exception as error:
+                        print(error)
 
+
+def save(model_name, item_to_save, data):
+    with open(DB_FILE_NAME, 'r+') as file:
+            data = json.load(file)
+            print(data)
+            print(type(data))
+            data[model_name].append(item_to_save.__dict__)
+            print(data)
+            file.seek(0)
+            json.dump(data, file, indent=4)
 
 def create_tournament():
     """Create a tournament"""
     data = v.ask_tournament_info_for_creation()
     try:
-        Tournament(data['name'], data['place'], data['starting_date'], data['ending_date'], data['description'])
+        t = Tournament(data['name'], data['place'], data['starting_date'], data['ending_date'], data['description'])
+        save(TOURNAMENT, t, data)
     except TypeError as error:
         print(error)
+    except Exception as error:
+        print(error)
+
+
+def init_database(): 
+    isFile = os.path.isfile(DB_FILE_NAME)
+    if (not isFile):
+        with open(DB_FILE_NAME, 'w') as fp:
+            json.dump(INIT_DB_JSON, fp, indent=4)
+    else:
+        print(f'The {DB_FILE_NAME} file is already initialized.')

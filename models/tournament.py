@@ -1,8 +1,8 @@
 class Tournament:
  
     def __init__(self, name, place, starting_date, ending_date, description=""):
-        self.name = name,
-        self.place = place,
+        self.name = name
+        self.place = place
         self.starting_date = starting_date
         self.ending_date = ending_date
         self.description = description
