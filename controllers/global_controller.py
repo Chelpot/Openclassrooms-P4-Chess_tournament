@@ -88,12 +88,12 @@ def create_player():
 
 
 def save(model_name, item_to_save, data):
+    """Save a given object in a given category of the Json database with a unique incremental ID"""
     with open(DB_FILE_NAME, 'r+') as file:
             data = json.load(file)
-            print(data)
-            print(type(data))
+            #We take the last gived ID and add 1 to it to make sure no object from the same class are equal by id
+            item_to_save.id = data[model_name][-1]["id"]+1
             data[model_name].append(item_to_save.__dict__)
-            print(data)
             file.seek(0)
             json.dump(data, file, indent=4)
 
