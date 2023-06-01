@@ -30,8 +30,7 @@ def launch():
     v.display_welcoming_message()
     init_database()
     while running:
-        v.display_action_pannel()
-        choice = input()
+        choice = v.display_action_pannel()
         running = call_function(choice)
 
 
@@ -40,6 +39,8 @@ def call_function(choice):
         create_player()
     if choice == "2":
         create_tournament()
+    if choice == "3":
+        v.display_players()
     #Exit
     if choice == "8":
         return False

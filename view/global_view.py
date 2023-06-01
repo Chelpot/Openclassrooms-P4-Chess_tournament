@@ -18,6 +18,12 @@ def display_action_pannel():
     print("Entrez le numéro de l'action que vous souhaitez entreprendre :")
     for option in menu_options:
         print(f"{option}: {menu_options[option]}")
+    
+    answer = input()
+    if answer in str(menu_options.keys):
+        return answer
+    else:
+        print("Réponse incorrecte") 
 
 def ask_player_info_for_creation():
     """Ask the player with a form for informations needed to create a Player"""
