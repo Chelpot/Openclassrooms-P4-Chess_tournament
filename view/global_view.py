@@ -1,29 +1,34 @@
+import json
 
 
 menu_options = {
             1: 'Créer un nouveau joueur',
             2: 'Créer un nouveau tournois',
+            3: 'Afficher la liste des joueurs',
             8: 'Quitter'
         }
 
 def display_welcoming_message():
-    print("*************************************************")
+    print("\n*************************************************")
     print("*   Bienvenue, vous utilisez actuellement un    *")
     print("*  logiciel permettant de gérer les tournois du *")
     print("*                 club d'échec.                 *")
     print("*************************************************")
 
 def display_action_pannel():
-    print("*************************************************")
+    print("\n*************************************************")
     print("Entrez le numéro de l'action que vous souhaitez entreprendre :")
     for option in menu_options:
         print(f"{option}: {menu_options[option]}")
     
     answer = input()
-    if answer in str(menu_options.keys):
+    if answer in str(menu_options.keys()):
         return answer
     else:
-        print("Réponse incorrecte") 
+        print("/!\\/!\\/!\\/!\\/!\\/!\\")
+        print("Réponse incorrecte")
+        print("/!\\/!\\/!\\/!\\/!\\/!\\")
+        return None
 
 def ask_player_info_for_creation():
     """Ask the player with a form for informations needed to create a Player"""
@@ -70,7 +75,16 @@ def ask_tournament_info_for_creation():
 
 def display_players():
     """Display a list of all players in DB sorted by alphabetical order."""
-    pass
+    with open("database.json", 'r+') as file:
+            data = json.load(file)
+            players = data["players"]
+            print("\nListe des joueurs : \n")
+            print("ID | Prénom | Nom | Date de naissance | Identifiant national d'échec")
+            print("**********************************************************************")
+            for p in players:
+                print(f'{p["id"]} | {p["first_name"]} | {p["last_name"]} | {p["birth_date"]} | {p["national_chess_id"]}')
+            print("**********************************************************************")
+            
 
 def display_tournaments():
     """Display a list of all tournaments."""
