@@ -6,6 +6,7 @@ menu_options = {
             2: 'Créer un nouveau tournois',
             3: 'Afficher la liste des joueurs',
             4: 'Afficher la liste des tournois',
+            5: 'Inscrire un joueur pour un tournois',
             8: 'Quitter'
         }
 
@@ -111,3 +112,9 @@ def display_players_for_tournament():
 def display_matches_for_turns_of_tournament():
     """display all turns for a tournament, and all matches for each turns"""
     pass
+
+def ask_player_id():
+    return input("Entrez l'ID du joueur que vous voulez inscrire au tournois : \n")
+
+def ask_tournament_id():
+    return input("Entrez l'ID du tournois à sélectionner : \n")

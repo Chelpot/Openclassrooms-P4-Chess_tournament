@@ -43,6 +43,8 @@ def call_function(choice):
         v.display_players()
     if choice == "4":
         v.display_tournaments()
+    if choice == "5":
+        add_player_to_tournament()
     #Exit
     if choice == "8":
         return False
@@ -83,7 +85,6 @@ def create_player():
                     try:
                         a = Player(data['first_name'], data['last_name'], data['birth_date'], data['national_chess_id'])
                         save(PLAYERS, a, data)
-                        print(a)
                     except TypeError as error:
                         print(error)
                     except Exception as error:
@@ -119,3 +120,23 @@ def init_database():
             json.dump(INIT_DB_JSON, fp, indent=4)
     else:
         print(f'The {DB_FILE_NAME} file is already initialized.')
+
+def add_player_to_tournament():
+    """Add a player to a tournament in in database"""
+    tournament_id = int(v.ask_tournament_id())
+    player_id = int(v.ask_player_id())
+    with open("database.json", 'r+') as file:
+            data = json.load(file)
+            players = data[PLAYERS]
+            tournaments = data[TOURNAMENT]
+            #Check if players and tournaments id are real and stored in database
+            if any(p['id'] == player_id for p in players) and any(t['id'] == tournament_id for t in tournaments):
+                #Check if player is already present in the tournament
+                selected_tournament = tournaments[tournament_id]
+                if any(registred_player == player_id for registred_player in selected_tournament['list_registered_players']):
+                    print(f"Player with id {player_id} already added to this tournament with id {tournament_id}")
+                else:
+                    selected_tournament['list_registered_players'].append(player_id)
+                    file.seek(0)
+                    json.dump(data, file, indent=4)
+                    print(f"Player with id {player_id} has been added to this tournament with id {tournament_id}")
