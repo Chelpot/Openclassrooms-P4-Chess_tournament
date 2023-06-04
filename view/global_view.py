@@ -5,6 +5,7 @@ menu_options = {
             1: 'Créer un nouveau joueur',
             2: 'Créer un nouveau tournois',
             3: 'Afficher la liste des joueurs',
+            4: 'Afficher la liste des tournois',
             8: 'Quitter'
         }
 
@@ -88,7 +89,16 @@ def display_players():
 
 def display_tournaments():
     """Display a list of all tournaments."""
-    pass
+    with open("database.json", 'r+') as file:
+            data = json.load(file)
+            tournaments = data["tournaments"]
+            print("\nListe des tournois : \n")
+            print("ID | Nom | Lieu | Date de début | Date de fin | Description")
+            print("**********************************************************************")
+            for t in tournaments:
+                print(f'{t["id"]} | {t["name"]} | {t["starting_date"]} | {t["ending_date"]} | {t["description"]}')
+            print("**********************************************************************")
+
 
 def display_infos_for_tournament(tournament):
     """display the name and dates for a given tournament."""

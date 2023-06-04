@@ -8,15 +8,15 @@ from models.tournament import Tournament
 from models.turn import Turn
 
 DB_FILE_NAME = "database.json"
-TOURNAMENT = "tournament"
+TOURNAMENT = "tournaments"
 PLAYERS = "players"
-TURN = "turn"
+TURN = "turns"
 INIT_DB_JSON = """
 {
     "players": [
     
     ],
-    "tournament": [
+    "tournaments": [
     
     ],
     "turns": [
@@ -41,6 +41,8 @@ def call_function(choice):
         create_tournament()
     if choice == "3":
         v.display_players()
+    if choice == "4":
+        v.display_tournaments()
     #Exit
     if choice == "8":
         return False
