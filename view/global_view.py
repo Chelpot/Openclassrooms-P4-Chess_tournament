@@ -7,6 +7,7 @@ menu_options = {
             3: 'Afficher la liste des joueurs',
             4: 'Afficher la liste des tournois',
             5: 'Inscrire un joueur pour un tournois',
+            6: 'Générer un round pour un tournois',
             8: 'Quitter'
         }
 
@@ -27,7 +28,7 @@ def display_action_pannel():
     if answer in str(menu_options.keys()):
         return answer
     else:
-        print("/!\\/!\\/!\\/!\\/!\\/!\\")
+        print("\n/!\\/!\\/!\\/!\\/!\\/!\\")
         print("Réponse incorrecte")
         print("/!\\/!\\/!\\/!\\/!\\/!\\")
         return None
@@ -117,4 +118,5 @@ def ask_player_id():
     return input("Entrez l'ID du joueur que vous voulez inscrire au tournois : \n")
 
 def ask_tournament_id():
-    return input("Entrez l'ID du tournois à sélectionner : \n")
+    print("**********************************************************************")
+    return input("\nEntrez l'ID du tournois à sélectionner : \n")

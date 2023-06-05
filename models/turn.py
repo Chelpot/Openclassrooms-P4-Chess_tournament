@@ -1,10 +1,10 @@
 class Turn:
 
-    def __init__(self, name):
+    def __init__(self, name, starting_date_hour, ending_date_hour, matches=[]) :
         self.name = name
-        self.starting_date_hour = None #TODO: time.now() parsé au format heure/jour
-        self.ending_date_hour = None
-        self.matches = []
+        self.starting_date_hour = starting_date_hour
+        self.ending_date_hour = ending_date_hour
+        self.matches = matches
         
 
     def add_match(self, first_player, second_player, first_player_score, second_player_score):
