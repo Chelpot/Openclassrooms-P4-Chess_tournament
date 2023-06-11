@@ -7,8 +7,8 @@ class Tournament:
         self.ending_date = ending_date
         self.description = description
 
-        self.current_turn = 1
-        self.number_of_turns = 4
-        self.list_turns = []
+        self.current_round = 1
+        self.number_of_rounds = 4
+        self.list_rounds = []
         self.list_registered_players = []
         

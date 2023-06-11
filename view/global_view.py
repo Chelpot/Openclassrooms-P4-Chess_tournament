@@ -110,8 +110,8 @@ def display_players_for_tournament():
     """display a list of all the players for a given tournament, the players will be sorted by alphabetical order."""
     pass
 
-def display_matches_for_turns_of_tournament():
-    """display all turns for a tournament, and all matches for each turns"""
+def display_matches_for_rounds_of_tournament():
+    """display all rounds for a tournament, and all matches for each rounds"""
     pass
 
 def ask_player_id():

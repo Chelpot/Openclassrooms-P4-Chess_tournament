@@ -5,12 +5,13 @@ import json
 from view import global_view as v
 from models.player import Player
 from models.tournament import Tournament
-from models.turn import Turn
+from models.round import Round
 
 DB_FILE_NAME = "database.json"
-TOURNAMENT = "tournaments"
+TOURNAMENTS = "tournaments"
+ROUND_LIST = "list_rounds"
 PLAYERS = "players"
-TURN = "turns"
+ROUNDS = "rounds"
 UNDEFINED = "Non defini"
 INIT_DB_JSON = """
 {
@@ -20,7 +21,7 @@ INIT_DB_JSON = """
     "tournaments": [
     
     ],
-    "turns": [
+    "rounds": [
     
     ],
 }
@@ -86,8 +87,8 @@ def create_player():
                 #Check if national chess id is correct
                 if is_national_chess_id_correct(data['national_chess_id']):
                     try:
-                        a = Player(data['first_name'], data['last_name'], data['birth_date'], data['national_chess_id'])
-                        save(PLAYERS, a)
+                        player = Player(data['first_name'], data['last_name'], data['birth_date'], data['national_chess_id'])
+                        save(PLAYERS, player)
                     except TypeError as error:
                         print(error)
                     except Exception as error:
@@ -106,15 +107,15 @@ def save(model_name, item_to_save):
             data[model_name].append(item_to_save.__dict__)
             file.seek(0)
             json.dump(data, file, indent=4)
-            return item_to_save.id
+
 
 
 def create_tournament():
     """Create a tournament"""
     data = v.ask_tournament_info_for_creation()
     try:
-        t = Tournament(data['name'], data['place'], data['starting_date'], data['ending_date'], data['description'])
-        save(TOURNAMENT, t)
+        tournament = Tournament(data['name'], data['place'], data['starting_date'], data['ending_date'], data['description'])
+        save(TOURNAMENTS, tournament)
     except TypeError as error:
         print(error)
     except Exception as error:
@@ -128,37 +129,28 @@ def generate_next_round_for_tournament():
         print("Veuillez entrer un nombre correspondant à l'identifiant du tournois !")
 
     try:
+
+        #Change ending date for last round of this tournament
         with open("database.json", 'r+') as file:
                 data = json.load(file)
-                tournaments = data[TOURNAMENT]
-                if is_tournament_existing(tournament_id, tournaments):
-                    next_turn_number = len(tournaments[tournament_id]["list_turns"]) + 1 
-                    turn_id = create_turn(next_turn_number)
-
-        #If turn creation went wrong, we do not add a null to the list of turns for the tournament
-        if turn_id is not None:
-            with open("database.json", 'r+') as file:
-                    data = json.load(file)
-                    tournaments = data[TOURNAMENT]
-                    tournaments[tournament_id]["list_turns"].append(turn_id)
+                tournaments = data[TOURNAMENTS]
+                list_rounds = data[TOURNAMENTS][tournament_id][ROUND_LIST]
+                # >1 because we check it after adding a round to the tournament
+                if len(list_rounds) > 0: 
+                    round = tournaments[tournament_id]["list_rounds"][-1]
+                    print(round["ending_date_hour"])
+                    round["ending_date_hour"] = dt.datetime.now().strftime("%d-%d-%Y %H:%M")
                     file.seek(0)
                     json.dump(data, file, indent=4)
 
-            #Change ending date for last turn of this tournament
-            with open("database.json", 'r+') as file:
-                    data = json.load(file)
-                    tournaments = data[TOURNAMENT]
-                    turns = data[TURN]
-                    # >1 because we check it after adding a turn to the tournament
-                    if len(tournaments[tournament_id]["list_turns"]) > 1: 
-                        turn_id = tournaments[tournament_id]["list_turns"][-2]
-                        turn = [t for t in turns if t['id'] == turn_id][0]
-                        turn["ending_date_hour"] = dt.datetime.now().strftime("%d-%d-%Y %H:%M")
-                        
-                        
-                        
-                        file.seek(0)
-                        json.dump(data, file, indent=4)
+        with open("database.json", 'r+') as file:
+                data = json.load(file)
+                tournaments = data[TOURNAMENTS]
+                if is_tournament_existing(tournament_id, tournaments):
+                    next_round_number = len(tournaments[tournament_id]["list_rounds"]) + 1 
+                    round_id = create_round(next_round_number, tournament_id)
+
+        
 
             
     except UnboundLocalError as e:
@@ -166,17 +158,32 @@ def generate_next_round_for_tournament():
         print("Le tournois choisi n'existe pas !")
     
 
-def create_turn(round_number):
-    """Create a turn for a given tournament"""
+def create_round(round_number, tournament_id):
+    """Create a round for a given tournament"""
     matches = []
     try:
-        t = Turn(f"Round {round_number}", dt.datetime.now().strftime("%d-%d-%Y %H:%M"), UNDEFINED, matches)
-        return save(TURN, t)
+        round = Round(f"Round {round_number}", dt.datetime.now().strftime("%d-%d-%Y %H:%M"), UNDEFINED, matches)
+        save_round_in_tournament(round, tournament_id)
     except TypeError as error:
         print(error)
     except Exception as error:
         print(error)
-    return None
+
+
+def save_round_in_tournament(item_to_save, tournament_id):
+    with open(DB_FILE_NAME, 'r+') as file:
+            data = json.load(file)
+            round_list = data[TOURNAMENTS][tournament_id][ROUND_LIST]
+            #We take the last gived ID and add 1 to it to make sure no object from the same class are equal by id
+            if len(round_list) == 0:
+                item_to_save.id = 0
+            else:
+                item_to_save.id = round_list[-1]["id"]+1
+            round_list.append(item_to_save.__dict__)
+            file.seek(0)
+            json.dump(data, file, indent=4)
+
+
 
 def init_database(): 
     isFile = os.path.isfile(DB_FILE_NAME)
@@ -199,7 +206,7 @@ def add_player_to_tournament():
     with open("database.json", 'r+') as file:
             data = json.load(file)
             players = data[PLAYERS]
-            tournaments = data[TOURNAMENT]
+            tournaments = data[TOURNAMENTS]
             #Check if players and tournaments id are real and stored in database
             if  is_player_existing(player_id, players) and is_tournament_existing(tournament_id, tournaments):
                 #Check if player is already present in the tournament
