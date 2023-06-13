@@ -1,6 +1,7 @@
 import os
 import datetime as dt
 import json
+from models import player
 
 from view import global_view as v
 from models.player import Player
@@ -13,19 +14,8 @@ ROUND_LIST = "list_rounds"
 PLAYERS = "players"
 ROUNDS = "rounds"
 UNDEFINED = "Non defini"
-INIT_DB_JSON = """
-{
-    "players": [
-    
-    ],
-    "tournaments": [
-    
-    ],
-    "rounds": [
-    
-    ],
-}
-"""
+INIT_DB_JSON = {"players": [],"tournaments": []}
+
 
 def launch():
     running = True
@@ -45,8 +35,6 @@ def call_function(choice):
         v.display_players()
     if choice == "4":
         v.display_tournaments()
-    if choice == "5":
-        add_player_to_tournament()
     if choice == "6":
         generate_next_round_for_tournament()
     #Exit
@@ -115,7 +103,18 @@ def create_tournament():
     data = v.ask_tournament_info_for_creation()
     try:
         tournament = Tournament(data['name'], data['place'], data['starting_date'], data['ending_date'], data['description'])
+        adding_players = True
+        while adding_players:
+            player_id = int(v.ask_player_id())
+            if is_player_valid_for_tournament_registration(player_id, tournament):
+                tournament.list_registered_players.append(player_id)
+            print("**********************************************************************")
+            if input(f"Voulez vous inscrire un autre joueur au tournois \"{tournament.name}\" ? (N pour valider les inscrits) : ") == "N":
+                adding_players = False
+                print("Inscriptions au tournois cloturées")
+
         save(TOURNAMENTS, tournament)
+
     except TypeError as error:
         print(error)
     except Exception as error:
@@ -198,23 +197,21 @@ def is_player_existing(player_id, players):
 
 def is_tournament_existing(tournament_id, tournaments):
     return any(t['id'] == tournament_id for t in tournaments)
-    
-def add_player_to_tournament():
-    """Add a player to a tournament in in database"""
-    tournament_id = int(v.ask_tournament_id())
-    player_id = int(v.ask_player_id())
+
+
+def is_player_valid_for_tournament_registration(player_id, tournament):
+    """Check if the player id is existing in DB and if it's not already registered"""
     with open("database.json", 'r+') as file:
             data = json.load(file)
             players = data[PLAYERS]
-            tournaments = data[TOURNAMENTS]
-            #Check if players and tournaments id are real and stored in database
-            if  is_player_existing(player_id, players) and is_tournament_existing(tournament_id, tournaments):
-                #Check if player is already present in the tournament
-                selected_tournament = tournaments[tournament_id]
-                if any(registred_player == player_id for registred_player in selected_tournament['list_registered_players']):
-                    print(f"Player with id {player_id} already added to this tournament with id {tournament_id}")
+            #Check if players is real and stored in database
+            if is_player_existing(player_id, players):
+                if player_id in tournament.list_registered_players:
+                    print(f"Player with id {player_id} already added to this tournament")
                 else:
-                    selected_tournament['list_registered_players'].append(player_id)
-                    file.seek(0)
-                    json.dump(data, file, indent=4)
-                    print(f"Player with id {player_id} has been added to this tournament with id {tournament_id}")
+                    print(f"Player with id {player_id} has been added to this tournament")
+                    return True
+            else:
+                print(f"Player with id {player_id} doesn\'t exist")
+            file.close()
+    return False

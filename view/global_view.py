@@ -6,7 +6,6 @@ menu_options = {
             2: 'Créer un nouveau tournois',
             3: 'Afficher la liste des joueurs',
             4: 'Afficher la liste des tournois',
-            5: 'Inscrire un joueur pour un tournois',
             6: 'Générer un round pour un tournois',
             8: 'Quitter'
         }
