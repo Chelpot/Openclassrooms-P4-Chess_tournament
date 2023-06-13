@@ -105,13 +105,17 @@ def create_tournament():
         tournament = Tournament(data['name'], data['place'], data['starting_date'], data['ending_date'], data['description'])
         adding_players = True
         while adding_players:
-            player_id = int(v.ask_player_id())
-            if is_player_valid_for_tournament_registration(player_id, tournament):
-                tournament.list_registered_players.append(player_id)
-            print("**********************************************************************")
-            if input(f"Voulez vous inscrire un autre joueur au tournois \"{tournament.name}\" ? (N pour valider les inscrits) : ") == "N":
-                adding_players = False
-                print("Inscriptions au tournois cloturées")
+            player_id = v.ask_player_id()
+            if player_id.isnumeric(): 
+                player_id = int(player_id)   
+                if is_player_valid_for_tournament_registration(player_id, tournament):
+                    tournament.list_registered_players.append(player_id)
+                print("**********************************************************************")
+                if input(f"Voulez vous inscrire un autre joueur au tournois \"{tournament.name}\" ? (N pour valider les inscrits) : ") == "N":
+                    adding_players = False
+                    print("Inscriptions au tournois cloturées")
+            else:
+                print("Saisie incorrecte !")
 
         save(TOURNAMENTS, tournament)
 
