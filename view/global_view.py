@@ -65,6 +65,8 @@ def ask_tournament_info_for_creation():
         data['starting_date'] = input()
         print("Date de fin : ")
         data['ending_date'] = input()
+        print("Nombre de tours : (Facultatif 4 par défaut)")
+        data['number_of_rounds'] = input()
         print("Description du tournois : (Facultatif)")
         data['description'] = input()
         print("Validez vous les informations ? Y/N : ")

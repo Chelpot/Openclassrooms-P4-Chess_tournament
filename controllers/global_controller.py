@@ -102,7 +102,7 @@ def create_tournament():
     """Create a tournament"""
     data = v.ask_tournament_info_for_creation()
     try:
-        tournament = Tournament(data['name'], data['place'], data['starting_date'], data['ending_date'], data['description'])
+        tournament = Tournament(data['name'], data['place'], data['starting_date'], data['ending_date'], data['number_of_rounds'], data['description'])
         adding_players = True
         while adding_players:
             player_id = v.ask_player_id()
