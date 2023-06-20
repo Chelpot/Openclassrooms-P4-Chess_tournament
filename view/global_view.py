@@ -115,9 +115,28 @@ def display_matches_for_rounds_of_tournament():
     """display all rounds for a tournament, and all matches for each rounds"""
     pass
 
+def display_leaderboard(list_player_score):
+    print("\n**********************************************************************")
+    print("\nClassement : ")
+    for index, rank in enumerate(list_player_score):
+        print(f"{index+1} : {rank}")
+
+def display_matches(list_matches):
+    print("\nMatches de ce round : ")
+    for match in list_matches:
+        print(match)
+
 def ask_player_id():
     return input("Entrez l'ID du joueur que vous voulez inscrire au tournois : \n")
 
 def ask_tournament_id():
     print("**********************************************************************")
     return input("\nEntrez l'ID du tournois à sélectionner : \n")
+
+def ask_match_result(match):
+        print("\n**********************************************************************")
+        print("Quel est le résultat de ce match ?")
+        print(match)
+        print("G pour victoire du joueur de gauche")
+        print("D pour victoire du joueur de droite")
+        print("E pour égalité")
