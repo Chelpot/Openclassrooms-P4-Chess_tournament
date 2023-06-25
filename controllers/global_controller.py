@@ -35,6 +35,8 @@ def call_function(choice):
         v.display_players()
     if choice == "4":
         v.display_tournaments()
+    if choice == "5":
+        v.display_players_for_tournament()
     if choice == "6":
         generate_next_round_for_tournament()
     # Exit

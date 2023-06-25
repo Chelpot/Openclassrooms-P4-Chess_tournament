@@ -6,6 +6,7 @@ menu_options = {
             2: 'Créer un nouveau tournois',
             3: 'Afficher la liste des joueurs',
             4: 'Afficher la liste des tournois',
+            5: 'Afficher les joueurs d\'un tournois',
             6: 'Générer un round pour un tournois',
             8: 'Quitter'
         }
@@ -114,8 +115,26 @@ def display_infos_for_tournament(tournament):
 
 def display_players_for_tournament():
     """display a list of all the players for a given tournament, the players will be sorted by alphabetical order."""
-    pass
-
+    with open("database.json", 'r+') as file:
+        data = json.load(file)
+        id = input("Saisissez l'identifiant du tournois : ")
+        while not id.isnumeric():
+            id = input("Saisissez l'identifiant du tournois : ")
+        tournament = [t for t in data["tournaments"] if str(t["id"]) == id]
+        
+        if not tournament:
+            print(f"Le tournois numéro {id} n'existe pas.")
+        else:
+            tournament = tournament[0]
+            print(f"\nListe des joueurs du tournois \"{tournament['name']}\" : \n")
+            print("ID | Prénom | Nom | Date de naissance | Identifiant national d'échec")
+            print("**********************************************************************")
+            players = data["players"]
+            # Display players registered in tournament
+            for p in players:
+                if p["id"] in tournament["list_registered_players"]:
+                    print(f'{p["id"]} | {p["first_name"]} | {p["last_name"]} | {p["birth_date"]} | {p["national_chess_id"]}')
+                
 
 def display_matches_for_rounds_of_tournament():
     """display all rounds for a tournament, and all matches for each rounds"""
