@@ -10,6 +10,7 @@ menu_options = {
             8: 'Quitter'
         }
 
+
 def display_welcoming_message():
     print("\n*************************************************")
     print("*   Bienvenue, vous utilisez actuellement un    *")
@@ -17,12 +18,13 @@ def display_welcoming_message():
     print("*                 club d'échec.                 *")
     print("*************************************************")
 
+
 def display_action_pannel():
     print("\n*************************************************")
     print("Entrez le numéro de l'action que vous souhaitez entreprendre :")
     for option in menu_options:
         print(f"{option}: {menu_options[option]}")
-    
+
     answer = input()
     if answer in str(menu_options.keys()):
         return answer
@@ -32,11 +34,12 @@ def display_action_pannel():
         print("/!\\/!\\/!\\/!\\/!\\/!\\")
         return None
 
+
 def ask_player_info_for_creation():
     """Ask the player with a form for informations needed to create a Player"""
     is_valid = False
     while not is_valid:
-        data={}
+        data = {}
         print("Prénom : ")
         data['first_name'] = input()
         print("Nom : ")
@@ -46,17 +49,18 @@ def ask_player_info_for_creation():
         print("Identifiant national d'échecs : ")
         data['national_chess_id'] = input()
         print("Validez vous les informations ? Y/N : ")
-        if input() == 'Y':
+        if input().capitalize() == 'Y':
             is_valid = True
             return data
         else:
             return None
-        
+
+
 def ask_tournament_info_for_creation():
     """Ask the user informations to create a tournament"""
     is_valid = False
     while not is_valid:
-        data={}
+        data = {}
         print("Lieu : ")
         data['place'] = input()
         print("Nom du tournois : ")
@@ -80,40 +84,43 @@ def ask_tournament_info_for_creation():
 def display_players():
     """Display a list of all players in DB sorted by alphabetical order."""
     with open("database.json", 'r+') as file:
-            data = json.load(file)
-            players = data["players"]
-            print("\nListe des joueurs : \n")
-            print("ID | Prénom | Nom | Date de naissance | Identifiant national d'échec")
-            print("**********************************************************************")
-            for p in players:
-                print(f'{p["id"]} | {p["first_name"]} | {p["last_name"]} | {p["birth_date"]} | {p["national_chess_id"]}')
-            print("**********************************************************************")
-            
+        data = json.load(file)
+        players = data["players"]
+        print("\nListe des joueurs : \n")
+        print("ID | Prénom | Nom | Date de naissance | Identifiant national d'échec")
+        print("**********************************************************************")
+        for p in players:
+            print(f'{p["id"]} | {p["first_name"]} | {p["last_name"]} | {p["birth_date"]} | {p["national_chess_id"]}')
+        print("**********************************************************************")
+
 
 def display_tournaments():
     """Display a list of all tournaments."""
     with open("database.json", 'r+') as file:
-            data = json.load(file)
-            tournaments = data["tournaments"]
-            print("\nListe des tournois : \n")
-            print("ID | Nom | Lieu | Date de début | Date de fin | Description")
-            print("**********************************************************************")
-            for t in tournaments:
-                print(f'{t["id"]} | {t["name"]} | {t["starting_date"]} | {t["ending_date"]} | {t["description"]}')
-            print("**********************************************************************")
+        data = json.load(file)
+        tournaments = data["tournaments"]
+        print("\nListe des tournois : \n")
+        print("ID | Nom | Lieu | Date de début | Date de fin | Description")
+        print("**********************************************************************")
+        for t in tournaments:
+            print(f'{t["id"]} | {t["name"]} | {t["starting_date"]} | {t["ending_date"]} | {t["description"]}')
+        print("**********************************************************************")
 
 
 def display_infos_for_tournament(tournament):
-    """display the name and dates for a given tournament."""
+    """display informations for a given tournament."""
     pass
+
 
 def display_players_for_tournament():
     """display a list of all the players for a given tournament, the players will be sorted by alphabetical order."""
     pass
 
+
 def display_matches_for_rounds_of_tournament():
     """display all rounds for a tournament, and all matches for each rounds"""
     pass
+
 
 def display_leaderboard(list_player_score):
     print("\n**********************************************************************")
@@ -121,22 +128,26 @@ def display_leaderboard(list_player_score):
     for index, rank in enumerate(list_player_score):
         print(f"{index+1} : {rank}")
 
+
 def display_matches(list_matches):
     print("\nMatches de ce round : ")
     for match in list_matches:
         print(match)
 
+
 def ask_player_id():
     return input("Entrez l'ID du joueur que vous voulez inscrire au tournois : \n")
+
 
 def ask_tournament_id():
     print("**********************************************************************")
     return input("\nEntrez l'ID du tournois à sélectionner : \n")
 
+
 def ask_match_result(match):
-        print("\n**********************************************************************")
-        print("Quel est le résultat de ce match ?")
-        print(match)
-        print("G pour victoire du joueur de gauche")
-        print("D pour victoire du joueur de droite")
-        print("E pour égalité")
+    print("\n**********************************************************************")
+    print("Quel est le résultat de ce match ?")
+    print(match)
+    print("G pour victoire du joueur de gauche")
+    print("D pour victoire du joueur de droite")
+    print("E pour égalité")

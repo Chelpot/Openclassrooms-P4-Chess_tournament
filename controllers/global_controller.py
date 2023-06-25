@@ -14,7 +14,7 @@ ROUND_LIST = "list_rounds"
 PLAYERS = "players"
 ROUNDS = "rounds"
 UNDEFINED = "Non defini"
-INIT_DB_JSON = {"players": [],"tournaments": []}
+INIT_DB_JSON = {"players": [], "tournaments": []}
 
 
 def launch():
@@ -63,7 +63,7 @@ def is_birthdate_correct(birthdate: str):
 def is_national_chess_id_correct(id: str):
     """Check if id follow the layout AB12345"""
     return id[:2].isalpha() and id[5:].isnumeric() and len(id) == 7
-    
+
 
 def create_player():
     """Create a player"""
@@ -118,13 +118,13 @@ def create_tournament():
         adding_players = True
         while adding_players:
             player_id = v.ask_player_id()
-            if player_id.isnumeric(): 
-                player_id = int(player_id)   
+            if player_id.isnumeric():
+                player_id = int(player_id)
                 if is_player_valid_for_registration(player_id, tournament):
                     tournament.list_registered_players.append(player_id)
                 print("******************************************************")
                 if input("Voulez vous inscrire un autre joueur au tournois"
-                         + f"\"{tournament.name}\" ? " + 
+                         + f"\"{tournament.name}\" ? " +
                          "(N pour clôturer) : ").capitalize() == "N":
                     adding_players = False
                     print("Inscriptions au tournois cloturées")
@@ -153,8 +153,8 @@ def generate_next_round_for_tournament():
             tournaments = data[TOURNAMENTS]
             list_rounds = data[TOURNAMENTS][tournament_id][ROUND_LIST]
             # >1 because we check it after adding a round to the tournament
-            if len(list_rounds) > 0: 
-                round = tournaments[tournament_id]["list_rounds"][-1]
+            if len(list_rounds) > 0:
+                round = tournaments[tournament_id][ROUND_LIST][-1]
                 round["ending_date_hour"] = dt.datetime.now().strftime("%d-%d-%Y %H:%M")
                 file.seek(0)
                 json.dump(data, file, indent=4)
@@ -164,18 +164,19 @@ def generate_next_round_for_tournament():
             data = json.load(file)
             tournaments = data[TOURNAMENTS]
             if is_tournament_existing(tournament_id, tournaments):
-                next_round_number = len(tournaments[tournament_id]["list_rounds"]) + 1
-                create_round(next_round_number, tournament_id)     
+                next_round_number = len(tournaments[tournament_id][ROUND_LIST]) + 1
+                create_round(next_round_number, tournament_id)
     except UnboundLocalError as e:
         print(e)
         print("Le tournois choisi n'existe pas !")
-    
+
 
 def create_round(round_number, tournament_id):
     """Create a round for a given tournament"""
     matches = []
     try:
-        round = Round(f"Round {round_number}", dt.datetime.now().strftime("%d-%d-%Y %H:%M"), UNDEFINED, matches)
+        now = dt.datetime.now().strftime("%d-%d-%Y %H:%M")
+        round = Round(f"Round {round_number}", now, UNDEFINED, matches)
         matches = generate_matches(tournament_id)
         round.matches = matches
         save_round_in_tournament(round, tournament_id)
@@ -216,7 +217,6 @@ def generate_matches(tournament_id):
         # Generate matches for other rounds
         else:
             last_round_matches = list_rounds[-1]["matches"]
-        
             # Generate list of players with their score sorted by score
             list_tuples_player_score = []
             for match in last_round_matches:
