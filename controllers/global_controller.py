@@ -192,57 +192,66 @@ def generate_matches(tournament_id):
     with open(DB_FILE_NAME, 'r+') as file:
         data = json.load(file)
         tournament = data[TOURNAMENTS][tournament_id]
-        list_players = tournament["list_registered_players"]
-        availables_players = [int(i) for i in list_players]
-        list_matches = []
-        list_rounds = []
-        last_round_matches = []
-        dict_matchups = {key: [] for key in list_players}
-        for round in tournament[ROUND_LIST]:
-            list_rounds.append(round)
-            # Generate list of matchups by players id
-            matches = round["matches"]
-            print(f"matches pour le round {round['name']}")
-            for match in matches:
-                print(match)
-                dict_matchups[match[0][0]].append(match[1][0])
-                dict_matchups[match[1][0]].append(match[0][0])
-        # Generate matches for the first round
-        if len(list_rounds) == 0:
-            for i in range(0, len(list_players)//2):
-                first_player = random.choice(availables_players)
-                availables_players.remove(first_player)
-                second_player = random.choice(availables_players)
-                availables_players.remove(second_player)
-                match = ([first_player, 0], [second_player, 0])
-                list_matches.append(match)
-        # Generate matches for other rounds
+        if tournament["current_round"] <= tournament["number_of_rounds"]:
+            list_players = tournament["list_registered_players"]
+            availables_players = [int(i) for i in list_players]
+            list_matches = []
+            list_rounds = []
+            last_round_matches = []
+            dict_matchups = {key: [] for key in list_players}
+            for round in tournament[ROUND_LIST]:
+                list_rounds.append(round)
+                # Generate list of matchups by players id
+                matches = round["matches"]
+                print(f"matches pour le round {round['name']}")
+                for match in matches:
+                    print(match)
+                    dict_matchups[match[0][0]].append(match[1][0])
+                    dict_matchups[match[1][0]].append(match[0][0])
+            # Generate matches for the first round
+            if len(list_rounds) == 0:
+                for i in range(0, len(list_players)//2):
+                    first_player = random.choice(availables_players)
+                    availables_players.remove(first_player)
+                    second_player = random.choice(availables_players)
+                    availables_players.remove(second_player)
+                    match = ([first_player, 0], [second_player, 0])
+                    list_matches.append(match)
+            # Generate matches for other rounds
+            else:
+                last_round_matches = list_rounds[-1]["matches"]
+                # Generate list of players with their score sorted by score
+                list_tuples_player_score = []
+                for match in last_round_matches:
+                    list_tuples_player_score.append(match[0])
+                    list_tuples_player_score.append(match[1])
+                list_tuples_player_score.sort(key=sort_player_scores, reverse=True)
+                # Generate next match
+                for player in list_tuples_player_score:
+                    if len(availables_players) != 0:
+                        player_id = player[0]
+                        if player_id in availables_players:
+                            availables_players.remove(player_id)
+                            for opponent in list_tuples_player_score:
+                                opponent_id = opponent[0]
+                                if (opponent_id not in dict_matchups[player_id] and
+                                        opponent_id in availables_players):
+                                    availables_players.remove(opponent_id)
+                                    match = (player, opponent)
+                                    list_matches.append(match)
+                                    break
+                v.display_leaderboard(list_tuples_player_score)
+                v.display_matches(list_matches)
+            list_matches = get_round_results(list_matches)
+            data[TOURNAMENTS][tournament_id]["current_round"] += 1
+            if tournament["current_round"] == tournament["number_of_rounds"]:
+                print("Le tournois est terminé")
+            file.seek(0)
+            json.dump(data, file, indent=4)
+            file.close()
+            return list_matches
         else:
-            last_round_matches = list_rounds[-1]["matches"]
-            # Generate list of players with their score sorted by score
-            list_tuples_player_score = []
-            for match in last_round_matches:
-                list_tuples_player_score.append(match[0])
-                list_tuples_player_score.append(match[1])
-            list_tuples_player_score.sort(key=sort_player_scores, reverse=True)
-            # Generate next match
-            for player in list_tuples_player_score:
-                if len(availables_players) != 0:
-                    player_id = player[0]
-                    if player_id in availables_players:
-                        availables_players.remove(player_id)
-                        for opponent in list_tuples_player_score:
-                            opponent_id = opponent[0]
-                            if (opponent_id not in dict_matchups[player_id] and
-                                    opponent_id in availables_players):
-                                availables_players.remove(opponent_id)
-                                match = (player, opponent)
-                                list_matches.append(match)
-                                break
-            v.display_leaderboard(list_tuples_player_score)
-            v.display_matches(list_matches)
-        list_matches = get_round_results(list_matches)
-        return list_matches
+            print("Le tournois est terminé")
 
 
 def sort_player_scores(elem):
