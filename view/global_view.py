@@ -1,5 +1,5 @@
 import json
-
+from operator import itemgetter
 
 menu_options = {
             1: 'Créer un nouveau joueur',
@@ -129,7 +129,7 @@ def display_players_for_tournament():
             print(f"\nListe des joueurs du tournois \"{tournament['name']}\" : \n")
             print("ID | Prénom | Nom | Date de naissance | Identifiant national d'échec")
             print("**********************************************************************")
-            players = data["players"]
+            players = sorted(data["players"], key=itemgetter('last_name'))
             # Display players registered in tournament
             for p in players:
                 if p["id"] in tournament["list_registered_players"]:
