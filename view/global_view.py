@@ -1,13 +1,16 @@
 import json
 from operator import itemgetter
 
+SEPARATOR = ""
+
 menu_options = {
             1: 'Créer un nouveau joueur',
             2: 'Créer un nouveau tournois',
-            3: 'Afficher la liste des joueurs',
-            4: 'Afficher la liste des tournois',
-            5: 'Afficher les joueurs d\'un tournois',
-            6: 'Générer un round pour un tournois',
+            3: 'Générer un round pour un tournois',
+            4: 'Rapport : Afficher la liste des joueurs',
+            5: 'Rapport : Afficher la liste des tournois',
+            6: 'Rapport : Afficher les joueurs d\'un tournois',
+            7: 'Rapport : liste des rounds et matches pour un tournois',
             8: 'Quitter'
         }
 
@@ -121,7 +124,6 @@ def display_players_for_tournament():
         while not id.isnumeric():
             id = input("Saisissez l'identifiant du tournois : ")
         tournament = [t for t in data["tournaments"] if str(t["id"]) == id]
-        
         if not tournament:
             print(f"Le tournois numéro {id} n'existe pas.")
         else:
@@ -134,11 +136,29 @@ def display_players_for_tournament():
             for p in players:
                 if p["id"] in tournament["list_registered_players"]:
                     print(f'{p["id"]} | {p["first_name"]} | {p["last_name"]} | {p["birth_date"]} | {p["national_chess_id"]}')
-                
+
 
 def display_matches_for_rounds_of_tournament():
     """display all rounds for a tournament, and all matches for each rounds"""
-    pass
+    with open("database.json", 'r+') as file:
+        data = json.load(file)
+        id = input("Saisissez l'identifiant du tournois : ")
+        while not id.isnumeric():
+            id = input("Saisissez l'identifiant du tournois : ")
+        tournament = [t for t in data["tournaments"] if str(t["id"]) == id]   
+        if not tournament:
+            print(f"Le tournois numéro {id} n'existe pas.")
+        else:
+            tournament = tournament[0]
+            print(f"\nListe des rounds du tournois \"{tournament['name']}\" : \n")
+            print("**********************************************************************")
+            rounds = tournament["list_rounds"]
+            # Display players registered in tournament
+            for round in rounds:
+                print(f"{round['name']}, {round['starting_date_hour']} - {round['ending_date_hour']}")
+                print("Résultats aprés match : ")
+                for match in round["matches"]:
+                    print(match)
 
 
 def display_leaderboard(list_player_score):
