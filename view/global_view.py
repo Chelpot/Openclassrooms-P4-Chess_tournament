@@ -10,8 +10,9 @@ menu_options = {
             4: 'Rapport : Afficher la liste des joueurs',
             5: 'Rapport : Afficher la liste des tournois',
             6: 'Rapport : Afficher les joueurs d\'un tournois',
-            7: 'Rapport : liste des rounds et matches pour un tournois',
-            8: 'Quitter'
+            7: 'Rapport : Afficher les informations pour un tournois',
+            8: 'Rapport : liste des rounds et matches pour un tournois',
+            10: 'Quitter'
         }
 
 
@@ -111,9 +112,16 @@ def display_tournaments():
         print("**********************************************************************")
 
 
-def display_infos_for_tournament(tournament):
+def display_infos_for_tournament():
     """display informations for a given tournament."""
-    pass
+    id = ask_tournament_id()
+    with open("database.json", 'r+') as file:
+        data = json.load(file)
+        t = data["tournaments"][id]
+        print("**********************************************************************")
+        print(f'id : {t["id"]} | Nom : {t["name"]} | Date de début : {t["starting_date"]} | Date de fin : {t["ending_date"]}')
+        print("**********************************************************************")
+    
 
 
 def display_players_for_tournament():

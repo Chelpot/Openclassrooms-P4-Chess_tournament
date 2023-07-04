@@ -40,9 +40,11 @@ def call_function(choice):
     if choice == "6":
         v.display_players_for_tournament()
     if choice == "7":
+        v.display_infos_for_tournament()
+    if choice == "8":
         v.display_matches_for_rounds_of_tournament()
     # Exit
-    if choice == "8":
+    if choice == "10":
         return False
     return True
 
