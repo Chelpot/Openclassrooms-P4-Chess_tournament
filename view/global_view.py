@@ -78,7 +78,7 @@ def ask_tournament_info_for_creation():
         print("Description du tournois : (Facultatif)")
         data['description'] = input()
         print("Validez vous les informations ? Y/N : ")
-        if input() == 'Y':
+        if input().upper() == 'Y':
             is_valid = True
             return data
         else:
@@ -175,12 +175,12 @@ def display_matches(list_matches):
 
 
 def ask_player_id():
-    return input("Entrez l'ID du joueur que vous voulez inscrire au tournois : \n")
+    return input("Entrez l'ID du joueur que vous voulez inscrire au tournois : \nEntrez \"terminer\" pour cloturer les inscriptions au tournois : ")
 
 
 def ask_tournament_id():
     print("**********************************************************************")
-    return input("\nEntrez l'ID du tournois à sélectionner : \n")
+    return int(input("\nEntrez l'ID du tournois à sélectionner : \n"))
 
 
 def ask_match_result(match):
@@ -190,3 +190,13 @@ def ask_match_result(match):
     print("G pour victoire du joueur de gauche")
     print("D pour victoire du joueur de droite")
     print("E pour égalité")
+
+
+def tournament_inscription_ended():
+    print("\nInscriptions au tournois cloturées")
+
+def incorrect_entry():
+    print("Saisie incorrecte !")
+
+def tournament_completed():
+    print("\nLe tournois est terminé")

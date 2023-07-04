@@ -6,6 +6,6 @@ class Tournament:
         self.ending_date = ending_date
         self.description = description
         self.number_of_rounds = number_of_rounds
-        self.current_round = 1
+        self.current_round = 0
         self.list_rounds = []
         self.list_registered_players = []

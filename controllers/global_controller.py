@@ -32,7 +32,7 @@ def call_function(choice):
     if choice == "2":
         create_tournament()
     if choice == "3":
-        generate_next_round_for_tournament()
+        resume_tournament_scoring()
     if choice == "4":
         v.display_players()
     if choice == "5":
@@ -45,6 +45,24 @@ def call_function(choice):
     if choice == "8":
         return False
     return True
+
+def resume_tournament_scoring():
+    id = v.ask_tournament_id()
+    if not is_tournament_finished(id):
+        if is_last_round_scoring_saved(id):
+            generate_next_round_for_tournament(id)
+        resume_match_scoring(id)
+    else:
+        v.tournament_completed()
+
+def is_tournament_finished(id):
+    with open(DB_FILE_NAME, 'r+') as file:
+        data = json.load(file)
+        tournament = data[TOURNAMENTS][id]
+    if (tournament["current_round"] >= tournament["number_of_rounds"] and
+        tournament[ROUND_LIST][-1]["ending_date_hour"] != UNDEFINED):
+        return True
+    return False
 
 
 def is_birthdate_correct(birthdate: str):
@@ -107,6 +125,7 @@ def save(model_name, item_to_save):
         data[model_name].append(item_to_save.__dict__)
         file.seek(0)
         json.dump(data, file, indent=4)
+        return item_to_save.id
 
 
 def create_tournament():
@@ -120,28 +139,62 @@ def create_tournament():
                                 int(data['number_of_rounds']),
                                 data['description'])
         adding_players = True
-        v.display_players()
+        # Players registration
         while adding_players:
+            v.display_players()
             player_id = v.ask_player_id()
             if player_id.isnumeric():
                 player_id = int(player_id)
                 if is_player_valid_for_registration(player_id, tournament):
                     tournament.list_registered_players.append(player_id)
-                print("******************************************************")
-                if input("Voulez vous inscrire un autre joueur au tournois "
-                         + f"\"{tournament.name}\" ? " +
-                         "(N pour clôturer) : ").capitalize() == "N":
-                    adding_players = False
-                    print("Inscriptions au tournois cloturées")
             else:
-                print("Saisie incorrecte !")
-
-        save(TOURNAMENTS, tournament)
-
+                if player_id.lower() == "terminer":
+                    adding_players = False
+                    v.tournament_inscription_ended()
+                else:
+                    v.incorrect_entry()
+        id = save(TOURNAMENTS, tournament)
+        generate_next_round_for_tournament(id)
+        print("generated")
+        resume_match_scoring(id)
+        print("resumed")
     except TypeError as error:
-        print(error)
+        v.incorrect_entry()
     except Exception as error:
         print(error)
+
+def is_last_round_scoring_saved(id):
+    with open(DB_FILE_NAME, 'r+') as file:
+        data = json.load(file)
+        tournament = data[TOURNAMENTS][id]
+        if len(tournament[ROUND_LIST]) > 1:
+            current_round = tournament[ROUND_LIST][-1]
+            # We can't have 2 similar match, so if it appear it mean score were not saved
+            if current_round["ending_date_hour"] == UNDEFINED:
+                return False
+            else:
+                return True
+        else:
+            #If first match score are 0 vs 0 then it was not saved
+            first_match = tournament[ROUND_LIST][0]["matches"][0]
+            if first_match[0][1] == 0 == first_match[1][1]:
+                return False
+            else:
+                return True
+            
+
+def resume_match_scoring(id):
+    with open(DB_FILE_NAME, 'r+') as file:
+        data = json.load(file)
+        tournament = data[TOURNAMENTS][id]
+        list_matches = tournament[ROUND_LIST][-1]["matches"]
+        get_round_results(list_matches)
+        data[TOURNAMENTS][id][ROUND_LIST][-1]["matches"] = list_matches
+        # Change ending date for last round of this tournament
+        file.seek(0)
+        json.dump(data, file, indent=4)
+        file.close()
+    save_ending_hour_for_round(id)
 
 
 def save_ending_hour_for_round(tournament_id):
@@ -156,24 +209,26 @@ def save_ending_hour_for_round(tournament_id):
                 file.seek(0)
                 json.dump(data, file, indent=4)
 
-def generate_next_round_for_tournament():
+def generate_next_round_for_tournament(tournament_id = None):
+    print(tournament_id)
     try:
-        tournament_id = int(v.ask_tournament_id())
+        if not tournament_id:
+            tournament_id = v.ask_tournament_id()
     except ValueError:
         print("Veuillez entrer l'identifiant du tournois !")
     try:
-        # Change ending date for last round of this tournament
-        save_ending_hour_for_round(tournament_id)
-
         # Generate next round
         with open(DB_FILE_NAME, 'r+') as file:
             data = json.load(file)
             tournaments = data[TOURNAMENTS]
             if is_tournament_existing(tournament_id, tournaments):
-                if tournaments[tournament_id]["current_round"] > tournaments[tournament_id]["number_of_rounds"]:
-                    print("Le tournois est terminé")
+                if is_tournament_finished(tournament_id):
+                    v.tournament_completed()
+                    matches = generate_leaderboard(tournaments[tournament_id][ROUND_LIST][-1]["matches"])
+                    v.display_leaderboard(matches)
                 else:
                     next_round_number = len(tournaments[tournament_id][ROUND_LIST]) + 1
+                    print("avant de créer round")
                     create_round(next_round_number, tournament_id)
     except UnboundLocalError as e:
         print(e)
@@ -250,32 +305,28 @@ def generate_matches(tournament_id):
     with open(DB_FILE_NAME, 'r+') as file:
         data = json.load(file)
         tournament = data[TOURNAMENTS][tournament_id]
-        if tournament["current_round"] <= tournament["number_of_rounds"]:
-            list_players = tournament["list_registered_players"]
-            availables_players = [int(i) for i in list_players]
-            list_matches = []
-            list_rounds = [ r for r in tournament[ROUND_LIST]]
-            dict_matchups = generate_matchups_list(list_players, tournament[ROUND_LIST])
-            # Generate matches for the first round
-            if len(list_rounds) == 0:
-                list_matches = generate_first_matches(list_players, availables_players)
-            # Generate matches for other rounds
-            else:
-                # Generate list of players with their score sorted by score
-                last_round_matches = list_rounds[-1]["matches"]
-                list_tuples_player_score = generate_leaderboard(last_round_matches)
-                # Generate next match
-                list_matches = generate_match(availables_players, list_tuples_player_score, dict_matchups)
-                v.display_leaderboard(list_tuples_player_score)
-                v.display_matches(list_matches)
-            list_matches = get_round_results(list_matches)
-            data[TOURNAMENTS][tournament_id]["current_round"] += 1
-            file.seek(0)
-            json.dump(data, file, indent=4)
-            file.close()
-            return list_matches
+        list_players = tournament["list_registered_players"]
+        availables_players = [int(i) for i in list_players]
+        list_matches = []
+        list_rounds = [ r for r in tournament[ROUND_LIST]]
+        dict_matchups = generate_matchups_list(list_players, tournament[ROUND_LIST])
+        # Generate matches for the first round
+        if len(list_rounds) == 0:
+            list_matches = generate_first_matches(list_players, availables_players)
+        # Generate matches for other rounds
         else:
-            print("Le tournois est terminé")
+            # Generate list of players with their score sorted by score
+            last_round_matches = list_rounds[-1]["matches"]
+            list_tuples_player_score = generate_leaderboard(last_round_matches)
+            # Generate next match
+            list_matches = generate_match(availables_players, list_tuples_player_score, dict_matchups)
+            v.display_leaderboard(list_tuples_player_score)
+        v.display_matches(list_matches)
+        data[TOURNAMENTS][tournament_id]["current_round"] += 1
+        file.seek(0)
+        json.dump(data, file, indent=4)
+        file.close()
+        return list_matches
 
 
 def sort_player_scores(elem):
@@ -298,7 +349,7 @@ def get_round_results(list_matches):
                     match[0][1] += 0.5
                     match[1][1] += 0.5
             else:
-                print("Saisie incorrecte")
+                v.incorrect_entry()
     return list_matches
 
 
