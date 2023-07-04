@@ -157,9 +157,7 @@ def create_tournament():
                     v.incorrect_entry()
         id = save(TOURNAMENTS, tournament)
         generate_next_round_for_tournament(id)
-        print("generated")
         resume_match_scoring(id)
-        print("resumed")
     except TypeError as error:
         v.incorrect_entry()
     except Exception as error:
@@ -230,7 +228,6 @@ def generate_next_round_for_tournament(tournament_id = None):
                     v.display_leaderboard(matches)
                 else:
                     next_round_number = len(tournaments[tournament_id][ROUND_LIST]) + 1
-                    print("avant de créer round")
                     create_round(next_round_number, tournament_id)
     except UnboundLocalError as e:
         print(e)
@@ -287,21 +284,46 @@ def generate_leaderboard(matches):
 
 def generate_match(availables_players, list_tuples_player_score, dict_matchups):
     list_matches = []
+    score_index_list_of_player_id = {}
+    # Init a dict where each key is a score, and player are attributed by score
+    for line in list_tuples_player_score:
+        score_index_list_of_player_id.setdefault(line[1], []).append(line[0])
+
     for player in list_tuples_player_score:
         if len(availables_players) == 0:
             break
         player_id = player[0]
         if player_id in availables_players:
             availables_players.remove(player_id)
+            # Remove every player from potential opponent in next matches
+            score_index_list_of_player_id[player[1]].remove(player[0])
             for opponent in list_tuples_player_score:
+                # Check if opponent have other players with same score
+                # If there is more than 1 potential opponent
+                if len(score_index_list_of_player_id[player[1]]) > 1:
+                    for confronted_opponent in dict_matchups[opponent[0]]:
+                        # Make remove past contestants
+                        if confronted_opponent in score_index_list_of_player_id[player[1]]:
+                            score_index_list_of_player_id[player[1]].remove(confronted_opponent)
+                    # If there is no potential opponnent, we take the next available by descending score
+                    if len(score_index_list_of_player_id[player[1]]) > 0:
+                        choice = random.choice(score_index_list_of_player_id[player[1]])
+                        availables_players.remove(choice)
+                        final_opponent = [t for t in list_tuples_player_score if t[0] == choice][0]
+                        match = (player, final_opponent)
+                        print(match)
+                        list_matches.append(match)
+                        break
+                    
                 opponent_id = opponent[0]
-                if (opponent_id not in dict_matchups[player_id] and
-                        opponent_id in availables_players):
+                # Default match association with next in leaderboard by descending score
+                if (opponent_id not in dict_matchups[player_id] and opponent_id in availables_players):
                     availables_players.remove(opponent_id)
                     match = (player, opponent)
                     list_matches.append(match)
                     break
     return list_matches
+
         
 def generate_matches(tournament_id):
     with open(DB_FILE_NAME, 'r+') as file:
