@@ -1,19 +1,32 @@
 import json
 from operator import itemgetter
+import controllers.global_controller as gc
 
-SEPARATOR = ""
+menu_home = {
+            1: 'Gestion',
+            2: 'Rapports',
+            3: 'Quitter',
 
-menu_options = {
+}
+
+menu_gestion = {
             1: 'Créer un nouveau joueur',
             2: 'Créer un nouveau tournois',
             3: 'Générer un round pour un tournois',
-            4: 'Rapport : Afficher la liste des joueurs',
-            5: 'Rapport : Afficher la liste des tournois',
-            6: 'Rapport : Afficher les joueurs d\'un tournois',
-            7: 'Rapport : Afficher les informations pour un tournois',
-            8: 'Rapport : liste des rounds et matches pour un tournois',
-            10: 'Quitter'
-        }
+            4: 'Quitter',
+
+}
+
+menu_rapport = {
+            1: 'Afficher la liste des joueurs',
+            2: 'Afficher la liste des tournois',
+            3: 'Afficher la liste des joueurs inscrits à un tournois',
+            4: 'Afficher les informations pour un tournois',
+            5: 'Afficher la liste des rounds et matches pour un tournois',
+            6: 'Afficher le classement pour un tournois',
+            7: 'Quitter',
+}
+
 
 
 def display_welcoming_message():
@@ -26,19 +39,29 @@ def display_welcoming_message():
 
 def display_action_pannel():
     print("\n*************************************************")
-    print("Entrez le numéro de l'action que vous souhaitez entreprendre :")
-    for option in menu_options:
-        print(f"{option}: {menu_options[option]}")
+    print("Que souhaitez vous faire ? (Entrez un chiffre correspondant à votre choix)")
+    print("1: Gestion\n2: Rapport\n3: Quitter")
+    menu_answer = input()
+    menu_choice = "None"
+    if menu_answer == "1":
+        menu_choice = menu_gestion
+    if menu_answer == "2":
+        menu_choice = menu_rapport
+    if menu_choice != "None":
+        print("Entrez le numéro de l'action que vous souhaitez utiliser :")
+        for option in menu_choice:
+            print(f"{option}: {menu_choice[option]}")
+        answer = input()
+        if answer in str(menu_choice.keys()):
+            return "{}-{}".format(menu_answer, answer)
+    display_incorrect_action()
+    return None
 
-    answer = input()
-    if answer in str(menu_options.keys()):
-        return answer
-    else:
-        print("\n/!\\/!\\/!\\/!\\/!\\/!\\")
-        print("Réponse incorrecte")
-        print("/!\\/!\\/!\\/!\\/!\\/!\\")
-        return None
-
+def display_incorrect_action():
+    print("\n/!\\/!\\/!\\/!\\/!\\/!\\")
+    print("Saisie incorrecte")
+    print("/!\\/!\\/!\\/!\\/!\\/!\\")
+    return None
 
 def ask_player_info_for_creation():
     """Ask the player with a form for informations needed to create a Player"""
@@ -53,7 +76,7 @@ def ask_player_info_for_creation():
         data['birth_date'] = input()
         print("Identifiant national d'échecs : ")
         data['national_chess_id'] = input()
-        print("Validez vous les informations ? Y/N : ")
+        print("Validez vous les informations ? Y/n : ")
         if input().capitalize() == 'Y':
             is_valid = True
             return data
@@ -78,7 +101,7 @@ def ask_tournament_info_for_creation():
         data['number_of_rounds'] = input()
         print("Description du tournois : (Facultatif)")
         data['description'] = input()
-        print("Validez vous les informations ? Y/N : ")
+        print("Validez vous les informations ? Y/n : ")
         if input().upper() == 'Y':
             is_valid = True
             return data
@@ -169,11 +192,18 @@ def display_matches_for_rounds_of_tournament():
                     print(match)
 
 
-def display_leaderboard(list_player_score):
+def display_leaderboard(id):
+    with open(gc.DB_FILE_NAME, 'r+') as file:
+            data = json.load(file)
+            tournament = data[gc.TOURNAMENTS][id]
+            matches = gc.generate_leaderboard(tournament[gc.ROUND_LIST][-1]["matches"])
+
     print("\n**********************************************************************")
     print("\nClassement : ")
-    for index, rank in enumerate(list_player_score):
+    for index, rank in enumerate(matches):
         print(f"{index+1} : {rank}")
+
+
 
 
 def display_matches(list_matches):
@@ -208,3 +238,11 @@ def incorrect_entry():
 
 def tournament_completed():
     print("\nLe tournois est terminé")
+
+def ask_exit_confirmation():
+    while True:
+        result = input("Êtes-vous sur de vouloir quitter le logiciel ? (Y/n)")
+        if result.upper() == 'Y':
+            return False
+        if result.upper() == 'N':
+            return True

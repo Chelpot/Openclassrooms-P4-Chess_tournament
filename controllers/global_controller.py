@@ -27,25 +27,27 @@ def launch():
 
 
 def call_function(choice):
-    if choice == "1":
+    if choice == "1-1":
         create_player()
-    if choice == "2":
+    if choice == "1-2":
         create_tournament()
-    if choice == "3":
+    if choice == "1-3":
         resume_tournament_scoring()
-    if choice == "4":
+    if choice == "2-1":
         v.display_players()
-    if choice == "5":
+    if choice == "2-2":
         v.display_tournaments()
-    if choice == "6":
+    if choice == "2-3":
         v.display_players_for_tournament()
-    if choice == "7":
+    if choice == "2-4":
         v.display_infos_for_tournament()
-    if choice == "8":
+    if choice == "2-5":
         v.display_matches_for_rounds_of_tournament()
+    if choice == "2-6":
+        v.display_leaderboard(v.ask_tournament_id())
     # Exit
-    if choice == "10":
-        return False
+    if choice == "1-4" or choice == "2-7" or choice is None:
+        return v.ask_exit_confirmation()
     return True
 
 def resume_tournament_scoring():
@@ -56,6 +58,8 @@ def resume_tournament_scoring():
         resume_match_scoring(id)
     else:
         v.tournament_completed()
+        v.display_leaderboard(id)
+        
 
 def is_tournament_finished(id):
     with open(DB_FILE_NAME, 'r+') as file:
@@ -154,12 +158,12 @@ def create_tournament():
                     adding_players = False
                     v.tournament_inscription_ended()
                 else:
-                    v.incorrect_entry()
+                    v.display_incorrect_action()
         id = save(TOURNAMENTS, tournament)
         generate_next_round_for_tournament(id)
         resume_match_scoring(id)
     except TypeError as error:
-        v.incorrect_entry()
+        v.display_incorrect_action()
     except Exception as error:
         print(error)
 
@@ -210,7 +214,6 @@ def save_ending_hour_for_round(tournament_id):
                 json.dump(data, file, indent=4)
 
 def generate_next_round_for_tournament(tournament_id = None):
-    print(tournament_id)
     try:
         if not tournament_id:
             tournament_id = v.ask_tournament_id()
@@ -224,8 +227,7 @@ def generate_next_round_for_tournament(tournament_id = None):
             if is_tournament_existing(tournament_id, tournaments):
                 if is_tournament_finished(tournament_id):
                     v.tournament_completed()
-                    matches = generate_leaderboard(tournaments[tournament_id][ROUND_LIST][-1]["matches"])
-                    v.display_leaderboard(matches)
+                    v.display_leaderboard(tournament_id)
                 else:
                     next_round_number = len(tournaments[tournament_id][ROUND_LIST]) + 1
                     create_round(next_round_number, tournament_id)
@@ -288,7 +290,6 @@ def generate_match(availables_players, list_tuples_player_score, dict_matchups):
     # Init a dict where each key is a score, and player are attributed by score
     for line in list_tuples_player_score:
         score_index_list_of_player_id.setdefault(line[1], []).append(line[0])
-
     for player in list_tuples_player_score:
         if len(availables_players) == 0:
             break
@@ -344,7 +345,7 @@ def generate_matches(tournament_id):
             list_tuples_player_score = generate_leaderboard(last_round_matches)
             # Generate next match
             list_matches = generate_match(availables_players, list_tuples_player_score, dict_matchups)
-            v.display_leaderboard(list_tuples_player_score)
+            v.display_leaderboard(tournament_id)
         v.display_matches(list_matches)
         data[TOURNAMENTS][tournament_id]["current_round"] += 1
         file.seek(0)
@@ -373,7 +374,7 @@ def get_round_results(list_matches):
                     match[0][1] += 0.5
                     match[1][1] += 0.5
             else:
-                v.incorrect_entry()
+                v.display_incorrect_action()
     return list_matches
 
 
@@ -425,3 +426,4 @@ def is_player_valid_for_registration(player_id, tournament):
             print(f"Player with id {player_id} doesn\'t exist")
         file.close()
     return False
+
