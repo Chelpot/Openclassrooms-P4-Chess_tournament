@@ -32,6 +32,7 @@ def call_function(choice):
     if choice == "1-2":
         create_tournament()
     if choice == "1-3":
+        v.display_tournaments()
         resume_tournament_scoring()
     if choice == "2-1":
         v.display_players()
@@ -78,17 +79,16 @@ def is_tournament_finished(id):
 def is_birthdate_correct(birthdate: str):
     """Check if birthdate follow the layout DD/MM/YYYY and is a valid date"""
     is_correct = True
-    if len(birthdate) == 10:
-        if birthdate.count("/") == 2:
-            splited_birthdate = birthdate.split("/")
-            day_date = int(splited_birthdate[0])
-            month_date = int(splited_birthdate[1])
-            year_date = int(splited_birthdate[2])
-            # Check if the date is a correct one
-            try:
-                dt.datetime(year_date, month_date, day_date)
-            except ValueError:
-                is_correct = False
+    if len(birthdate) == 10 and birthdate.count("/") == 2:
+        splited_birthdate = birthdate.split("/")
+        day_date = int(splited_birthdate[0])
+        month_date = int(splited_birthdate[1])
+        year_date = int(splited_birthdate[2])
+        # Check if the date is a correct one
+        try:
+            dt.datetime(year_date, month_date, day_date)
+        except ValueError:
+            is_correct = False
     return is_correct
 
 
@@ -101,23 +101,33 @@ def create_player():
     """Create a player"""
     data = v.ask_player_info_for_creation()
     # Check if first name is long enough
-    if len(data['first_name']) >= 3:
-        # Check if last name is long enough
-        if len(data['last_name']) >= 3:
-            # Check if birthdate is correct
-            if is_birthdate_correct(data['birth_date']):
-                # Check if national chess id is correct
-                if is_national_chess_id_correct(data['national_chess_id']):
-                    try:
-                        player = Player(data['first_name'],
-                                        data['last_name'],
-                                        data['birth_date'],
-                                        data['national_chess_id'])
-                        save(PLAYERS, player)
-                    except TypeError as error:
-                        print(error)
-                    except Exception as error:
-                        print(error)
+    if len(data['first_name']) < 2:
+        print("Prénom trop court (2 lettre minimum)")
+        return
+    # Check if last name is long enough
+    if len(data['last_name']) < 2:
+        print("Nom trop court (2 lettre minimum)")
+        return
+    # Check if birthdate is correct
+    if is_birthdate_correct(data['birth_date']):
+        print("Date de naissance incorrecte")
+        return
+    # Check if national chess id is correct
+    if is_national_chess_id_correct(data['national_chess_id']):
+        try:
+            player = Player(data['first_name'],
+                            data['last_name'],
+                            data['birth_date'],
+                            data['national_chess_id'])
+            save(PLAYERS, player)
+            return
+        except TypeError as error:
+            print(error)
+        except Exception as error:
+            print(error)
+    else:
+        print("Identifiant national d'échecs incorrect.")
+    v.player_creation_issue()
 
 
 def save(model_name, item_to_save):
