@@ -2,6 +2,8 @@ import json
 from operator import itemgetter
 import controllers.global_controller as gc
 
+CONST_SEPARATOR = "\n*************************************************\n"
+
 menu_home = {
             1: 'Gestion',
             2: 'Rapports',
@@ -38,7 +40,7 @@ def display_welcoming_message():
 
 
 def display_action_pannel():
-    print("\n*************************************************")
+    print(CONST_SEPARATOR)
     print("Que souhaitez vous faire ? (Entrez un chiffre correspondant à votre choix)")
     print("1: Gestion\n2: Rapport\n3: Quitter")
     menu_answer = input()
@@ -55,7 +57,7 @@ def display_action_pannel():
         if answer in str(menu_choice.keys()):
             return "{}-{}".format(menu_answer, answer)
     display_incorrect_action()
-    return None
+    return menu_answer
 
 def display_incorrect_action():
     print("\n/!\\/!\\/!\\/!\\/!\\/!\\")
@@ -116,10 +118,10 @@ def display_players():
         players = data["players"]
         print("\nListe des joueurs : \n")
         print("ID | Prénom | Nom | Date de naissance | Identifiant national d'échec")
-        print("**********************************************************************")
+        print(CONST_SEPARATOR)
         for p in players:
             print(f'{p["id"]} | {p["first_name"]} | {p["last_name"]} | {p["birth_date"]} | {p["national_chess_id"]}')
-        print("**********************************************************************")
+        print(CONST_SEPARATOR)
 
 
 def display_tournaments():
@@ -129,10 +131,10 @@ def display_tournaments():
         tournaments = data["tournaments"]
         print("\nListe des tournois : \n")
         print("ID | Nom | Lieu | Date de début | Date de fin | Description")
-        print("**********************************************************************")
+        print(CONST_SEPARATOR)
         for t in tournaments:
             print(f'{t["id"]} | {t["name"]} | {t["starting_date"]} | {t["ending_date"]} | {t["description"]}')
-        print("**********************************************************************")
+        print(CONST_SEPARATOR)
 
 
 def display_infos_for_tournament():
@@ -140,10 +142,14 @@ def display_infos_for_tournament():
     id = ask_tournament_id()
     with open("database.json", 'r+') as file:
         data = json.load(file)
-        t = data["tournaments"][id]
-        print("**********************************************************************")
-        print(f'id : {t["id"]} | Nom : {t["name"]} | Date de début : {t["starting_date"]} | Date de fin : {t["ending_date"]}')
-        print("**********************************************************************")
+        try:
+            t = data["tournaments"][id]
+            print(CONST_SEPARATOR)
+            print(f'id : {t["id"]} | Nom : {t["name"]} | Date de début : {t["starting_date"]} | Date de fin : {t["ending_date"]}')
+            print(CONST_SEPARATOR)
+        except IndexError:
+            print("Aucun tournoi avec l'identifiant indiqué a été trouvé.")
+       
     
 
 
@@ -151,9 +157,9 @@ def display_players_for_tournament():
     """display a list of all the players for a given tournament, the players will be sorted by alphabetical order."""
     with open("database.json", 'r+') as file:
         data = json.load(file)
-        id = input("Saisissez l'identifiant du tournois : ")
+        id = ask_tournament_id()
         while not id.isnumeric():
-            id = input("Saisissez l'identifiant du tournois : ")
+            id = ask_tournament_id()
         tournament = [t for t in data["tournaments"] if str(t["id"]) == id]
         if not tournament:
             print(f"Le tournois numéro {id} n'existe pas.")
@@ -161,7 +167,7 @@ def display_players_for_tournament():
             tournament = tournament[0]
             print(f"\nListe des joueurs du tournois \"{tournament['name']}\" : \n")
             print("ID | Prénom | Nom | Date de naissance | Identifiant national d'échec")
-            print("**********************************************************************")
+            print(CONST_SEPARATOR)
             players = sorted(data["players"], key=itemgetter('last_name'))
             # Display players registered in tournament
             for p in players:
@@ -173,16 +179,16 @@ def display_matches_for_rounds_of_tournament():
     """display all rounds for a tournament, and all matches for each rounds"""
     with open("database.json", 'r+') as file:
         data = json.load(file)
-        id = input("Saisissez l'identifiant du tournois : ")
+        id = ask_tournament_id()
         while not id.isnumeric():
-            id = input("Saisissez l'identifiant du tournois : ")
+            id = ask_tournament_id()
         tournament = [t for t in data["tournaments"] if str(t["id"]) == id]   
         if not tournament:
             print(f"Le tournois numéro {id} n'existe pas.")
         else:
             tournament = tournament[0]
             print(f"\nListe des rounds du tournois \"{tournament['name']}\" : \n")
-            print("**********************************************************************")
+            print(CONST_SEPARATOR)
             rounds = tournament["list_rounds"]
             # Display players registered in tournament
             for round in rounds:
@@ -198,7 +204,7 @@ def display_leaderboard(id):
             tournament = data[gc.TOURNAMENTS][id]
             matches = gc.generate_leaderboard(tournament[gc.ROUND_LIST][-1]["matches"])
 
-    print("\n**********************************************************************")
+    print(CONST_SEPARATOR)
     print("\nClassement : ")
     for index, rank in enumerate(matches):
         print(f"{index+1} : {rank}")
@@ -217,12 +223,19 @@ def ask_player_id():
 
 
 def ask_tournament_id():
-    print("**********************************************************************")
-    return int(input("\nEntrez l'ID du tournois à sélectionner : \n"))
+    print(CONST_SEPARATOR)
+    while True:
+        try:
+            id = int(input("\nSaisissez l'identifiant du tournois : "))
+            break
+        except ValueError:
+            print("Vous n'avez pas saisi un identifiant valide")
+    return id
+
 
 
 def ask_match_result(match):
-    print("\n**********************************************************************")
+    print(CONST_SEPARATOR)
     print("Quel est le résultat de ce match ?")
     print(match)
     print("G pour victoire du joueur de gauche")
@@ -232,9 +245,6 @@ def ask_match_result(match):
 
 def tournament_inscription_ended():
     print("\nInscriptions au tournois cloturées")
-
-def incorrect_entry():
-    print("Saisie incorrecte !")
 
 def tournament_completed():
     print("\nLe tournois est terminé")

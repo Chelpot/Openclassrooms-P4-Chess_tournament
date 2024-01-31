@@ -38,15 +38,19 @@ def call_function(choice):
     if choice == "2-2":
         v.display_tournaments()
     if choice == "2-3":
+        v.display_tournaments()
         v.display_players_for_tournament()
     if choice == "2-4":
+        v.display_tournaments()
         v.display_infos_for_tournament()
     if choice == "2-5":
+        v.display_tournaments()
         v.display_matches_for_rounds_of_tournament()
     if choice == "2-6":
+        v.display_tournaments()
         v.display_leaderboard(v.ask_tournament_id())
     # Exit
-    if choice == "1-4" or choice == "2-7" or choice is None:
+    if choice == "1-4" or choice == "2-7" or choice =="3":
         return v.ask_exit_confirmation()
     return True
 
@@ -394,13 +398,9 @@ def save_round_in_tournament(item_to_save, tournament_id):
 
 
 def init_database():
-    isFile = os.path.isfile(DB_FILE_NAME)
-    if (not isFile):
+    if (not os.path.isfile(DB_FILE_NAME)):
         with open(DB_FILE_NAME, 'w') as fp:
             json.dump(INIT_DB_JSON, fp, indent=4)
-    else:
-        print(f'The {DB_FILE_NAME} file is already initialized.')
-
 
 def is_player_existing(player_id, players):
     return any(p['id'] == player_id for p in players)
