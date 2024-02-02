@@ -57,14 +57,16 @@ def call_function(choice):
 
 def resume_tournament_scoring():
     id = v.ask_tournament_id()
-    if not is_tournament_finished(id):
-        if is_last_round_scoring_saved(id):
-            generate_next_round_for_tournament(id)
-        resume_match_scoring(id)
+    if is_tournament_existing(id):
+        if not is_tournament_finished(id):
+            if is_last_round_scoring_saved(id):
+                generate_next_round_for_tournament(id)
+            resume_match_scoring(id)
+        else:
+            v.tournament_completed()
+            v.display_leaderboard(id)
     else:
-        v.tournament_completed()
-        v.display_leaderboard(id)
-        
+        v.display_tournament_do_not_exist
 
 def is_tournament_finished(id):
     with open(DB_FILE_NAME, 'r+') as file:
@@ -100,20 +102,21 @@ def is_national_chess_id_correct(id: str):
 def create_player():
     """Create a player"""
     data = v.ask_player_info_for_creation()
+    nb_error = 0
     # Check if first name is long enough
     if len(data['first_name']) < 2:
         print("Prénom trop court (2 lettre minimum)")
-        return
+        nb_error+=1
     # Check if last name is long enough
     if len(data['last_name']) < 2:
         print("Nom trop court (2 lettre minimum)")
-        return
+        nb_error+=1
     # Check if birthdate is correct
-    if is_birthdate_correct(data['birth_date']):
+    if not is_birthdate_correct(data['birth_date']):
         print("Date de naissance incorrecte")
-        return
+        nb_error+=1
     # Check if national chess id is correct
-    if is_national_chess_id_correct(data['national_chess_id']):
+    if not is_national_chess_id_correct(data['national_chess_id']):
         try:
             player = Player(data['first_name'],
                             data['last_name'],
@@ -228,27 +231,21 @@ def save_ending_hour_for_round(tournament_id):
                 json.dump(data, file, indent=4)
 
 def generate_next_round_for_tournament(tournament_id = None):
-    try:
-        if not tournament_id:
-            tournament_id = v.ask_tournament_id()
-    except ValueError:
-        print("Veuillez entrer l'identifiant du tournois !")
+    if not tournament_id:
+        tournament_id = v.ask_tournament_id()
     try:
         # Generate next round
-        with open(DB_FILE_NAME, 'r+') as file:
-            data = json.load(file)
-            tournaments = data[TOURNAMENTS]
-            if is_tournament_existing(tournament_id, tournaments):
-                if is_tournament_finished(tournament_id):
-                    v.tournament_completed()
-                    v.display_leaderboard(tournament_id)
-                else:
-                    next_round_number = len(tournaments[tournament_id][ROUND_LIST]) + 1
-                    create_round(next_round_number, tournament_id)
+        tournaments = get_tournaments()
+        if is_tournament_existing(tournament_id):
+            if is_tournament_finished(tournament_id):
+                v.tournament_completed()
+                v.display_leaderboard(tournament_id)
+            else:
+                next_round_number = len(tournaments[tournament_id][ROUND_LIST]) + 1
+                create_round(next_round_number, tournament_id)
     except UnboundLocalError as e:
         print(e)
         print("Le tournois choisi n'existe pas !")
-
 
 def create_round(round_number, tournament_id):
     """Create a round for a given tournament"""
@@ -412,28 +409,38 @@ def init_database():
         with open(DB_FILE_NAME, 'w') as fp:
             json.dump(INIT_DB_JSON, fp, indent=4)
 
-def is_player_existing(player_id, players):
+def is_player_existing(player_id):
+    players = get_players()
     return any(p['id'] == player_id for p in players)
 
 
-def is_tournament_existing(tournament_id, tournaments):
+def is_tournament_existing(tournament_id):
+    tournaments = get_tournaments()
     return any(t['id'] == tournament_id for t in tournaments)
+
+def get_tournaments():
+    with open(DB_FILE_NAME, 'r+') as file:
+        data = json.load(file)
+        tournaments = data[TOURNAMENTS]
+        return tournaments
+    
+def get_players():
+    with open(DB_FILE_NAME, 'r+') as file:
+        data = json.load(file)
+        players = data[PLAYERS]
+        return players
 
 
 def is_player_valid_for_registration(player_id, tournament):
     """Check if the player id is existing and if it's not already registered"""
-    with open(DB_FILE_NAME, 'r+') as file:
-        data = json.load(file)
-        players = data[PLAYERS]
-        # Check if players is real and stored in database
-        if is_player_existing(player_id, players):
-            if player_id in tournament.list_registered_players:
-                print(f"Player with id {player_id} already added")
-            else:
-                print(f"Player with id {player_id} has been added")
-                return True
-        else:
-            print(f"Player with id {player_id} doesn\'t exist")
-        file.close()
+    # Check if players is real and stored in database
+    if is_player_existing(player_id):
+        if player_id in tournament.list_registered_players:
+            print(f"Le joueur avec l'id \"{player_id}\" est déja inscrit.")
+        else:            
+            print(f"Le joueur avec l'id \"{player_id}\" est maintenant inscrit.")
+            return True
+    else:
+        print(f"Le joueur avec l'id \"{player_id}\" n'existe pas.")
     return False
 

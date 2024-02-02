@@ -162,7 +162,7 @@ def display_players_for_tournament():
         id = ask_tournament_id()
         tournament = [t for t in data["tournaments"] if str(t["id"]) == id]
         if not tournament:
-            print(f"Le tournois numéro {id} n'existe pas.")
+            display_tournament_do_not_exist()
         else:
             tournament = tournament[0]
             print(f"\nListe des joueurs du tournois \"{tournament['name']}\" : \n")
@@ -182,7 +182,7 @@ def display_matches_for_rounds_of_tournament():
         id = ask_tournament_id()
         tournament = [t for t in data["tournaments"] if str(t["id"]) == id]   
         if not tournament:
-            print(f"Le tournois numéro {id} n'existe pas.")
+            display_tournament_do_not_exist()
         else:
             tournament = tournament[0]
             print(f"\nListe des rounds du tournois \"{tournament['name']}\" : \n")
@@ -227,8 +227,8 @@ def ask_tournament_id():
             id = int(input("\nSaisissez l'identifiant du tournois : "))
             break
         except ValueError:
-            print("Vous n'avez pas saisi un identifiant valide")
-    return str(id)
+            print("Vous n'avez pas saisi un identifiant valide.")
+    return id
 
 
 
@@ -236,16 +236,16 @@ def ask_match_result(match):
     print(CONST_SEPARATOR)
     print("Quel est le résultat de ce match ?")
     print(match)
-    print("G pour victoire du joueur de gauche")
-    print("D pour victoire du joueur de droite")
-    print("E pour égalité")
+    print("G pour victoire du joueur de gauche.")
+    print("D pour victoire du joueur de droite.")
+    print("E pour égalité.")
 
 
 def tournament_inscription_ended():
-    print("\nInscriptions au tournois cloturées")
+    print("\nInscriptions au tournois cloturées.")
 
 def tournament_completed():
-    print("\nLe tournois est terminé")
+    print("\nLe tournois est terminé.")
 
 def ask_exit_confirmation():
     while True:
@@ -254,3 +254,6 @@ def ask_exit_confirmation():
             return False
         if result.upper() == 'N':
             return True
+        
+def display_tournament_do_not_exist():
+    print("L'identifiant indiqué ne correspond pas à un tournois existant.")
