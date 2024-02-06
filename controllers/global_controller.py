@@ -120,33 +120,49 @@ def is_national_chess_id_correct(id: str):
 def create_tournament():
     """Create a tournament"""
     data = v.ask_tournament_info_for_creation()
+    nb_error = 0
     if not is_date_correct(data["starting_date"]) or not is_date_correct(data["ending_date"]):
+        v.display_date_incorrect()
+        nb_error += 1
+    if data["number_of_rounds"].isnumeric():
+        if int(data["number_of_rounds"]) < 1:
+            v.display_number_of_round_minimum()
+            nb_error += 1
+    else:
         v.display_incorrect_action()
-
-    tournament = Tournament(data['name'],
-                            data['place'],
-                            data['starting_date'],
-                            data['ending_date'],
-                            int(data['number_of_rounds']),
-                            data['description'])
-    adding_players = True
-    # Players registration
-    while adding_players:
-        v.display_players()
-        player_id = v.ask_player_id()
-        if player_id.isnumeric():
-            player_id = int(player_id)
-            if is_player_valid_for_registration(player_id, tournament):
-                tournament.list_registered_players.append(player_id)
-        else:
-            if player_id.lower() == "terminer":
-                adding_players = False
-                v.tournament_inscription_ended()
+        nb_error += 1
+    if nb_error == 0:
+        tournament = Tournament(data['name'],
+                                data['place'],
+                                data['starting_date'],
+                                data['ending_date'],
+                                int(data['number_of_rounds']),
+                                data['description'])
+        adding_players = True
+        # Players registration
+        while adding_players:
+            v.display_players()
+            player_id = v.ask_player_id()
+            if player_id.isnumeric():
+                player_id = int(player_id)
+                if is_player_valid_for_registration(player_id, tournament):
+                    tournament.list_registered_players.append(player_id)
             else:
-                v.display_incorrect_action()
-    id = save(TOURNAMENTS, tournament)
-    generate_next_round_for_tournament(id)
-    resume_tournament_scoring(id)
+                if player_id.lower() == "terminer":
+                    if len(tournament.list_registered_players)%2 == 1:
+                        v.display_even_number_player()
+                    elif len(tournament.list_registered_players) == 0:
+                        v.display_minimum_number_player()
+                    else:
+                        adding_players = False
+                        v.tournament_inscription_ended()
+                else:
+                    v.display_incorrect_action()
+        id = save(TOURNAMENTS, tournament)
+        generate_next_round_for_tournament(id)
+        resume_tournament_scoring(id)
+    else:
+        v.tournament_creation_issue()
 
 
 def resume_tournament_scoring(id = None):

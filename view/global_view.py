@@ -72,6 +72,10 @@ def player_creation_issue():
     """The player was not created because of invalid inputs"""
     print("La création du joueur a été annulée car des données sont invalides.")
 
+def tournament_creation_issue():
+    """The tournament was not created because of invalid inputs"""
+    print("La création du tournois a été annulée car des données sont invalides.")
+
 
 def ask_player_info_for_creation():
     """Ask the player with a form for informations needed to create a Player"""
@@ -275,9 +279,21 @@ def ask_exit_confirmation():
 
 def display_tournament_do_not_exist():
     """Display that the tournament do not exist"""
-    print("L'identifiant indiqué ne correspond pas à un tournois existant.")
+    print("\nL'identifiant indiqué ne correspond pas à un tournois existant.")
 
 
 def display_date_incorrect():
     """Display that the date is incorrect"""
-    print("Date incorrecte")
+    print("\nDate incorrecte")
+
+def display_even_number_player():
+    """Display that there must be a even number of player registered"""
+    print("\nIl faut impérativement un nombre de joueur pair pour le bon déroulement du tournois.")
+
+def display_number_of_round_minimum():
+    """Display that there must be at least 1 round"""
+    print('\nNombre de round doit être supérieur à 0')
+
+def display_minimum_number_player():
+    """Display that there must be at least 2 players"""
+    print("\nIl doit y avoir minimum 2 joueurs inscrits pour créer le tournois")
