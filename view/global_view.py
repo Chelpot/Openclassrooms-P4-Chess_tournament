@@ -14,7 +14,7 @@ menu_home = {
 menu_gestion = {
             1: 'Créer un nouveau joueur',
             2: 'Créer un nouveau tournois',
-            3: 'Générer un round pour un tournois',
+            3: 'Continuer un tournois',
             4: 'Quitter',
 
 }
@@ -131,26 +131,35 @@ def display_tournaments():
         data = json.load(file)
         tournaments = data["tournaments"]
         print("\nListe des tournois : \n")
-        print("ID | Nom | Lieu | Date de début | Date de fin | Description")
+        print("ID | Nom | Lieu | Date de début | Date de fin | Description | Statut")
         print(CONST_SEPARATOR)
+        status = ""
         for t in tournaments:
-            print(f'{t["id"]} | {t["name"]} | {t["starting_date"]} | {t["ending_date"]} | {t["description"]}')
+            if t["current_round"] == t["number_of_rounds"]:
+                state = "Terminé"
+            else:
+                state = "En cours"
+            print(f'{t["id"]} | {t["name"]} | {t["starting_date"]} | {t["ending_date"]} | {t["description"]} | {state}')
         print(CONST_SEPARATOR)
 
 
-def display_infos_for_tournament():
+def display_infos_for_tournament(id):
     """display informations for a given tournament."""
-    id = int(ask_tournament_id())
     with open("database.json", 'r+') as file:
         data = json.load(file)
-        try:
-            t = data["tournaments"][id]
-            print(CONST_SEPARATOR)
-            print("Informations du tournois : ")
-            print(f'id : {t["id"]} | Nom : {t["name"]} | Date de début : {t["starting_date"]} | Date de fin : {t["ending_date"]}')
-            print(CONST_SEPARATOR)
-        except IndexError:
-            print("Aucun tournoi avec l'identifiant indiqué a été trouvé.")
+        t = data["tournaments"][id]
+        if t["current_round"] == t["number_of_rounds"]:
+            state = "Terminé"
+        else:
+            state = "En cours"
+        print(CONST_SEPARATOR)
+        print("Informations du tournois : ")
+        print("id : {} | Nom : {} | Lieu : {}".format(t["id"], t["name"], t["place"]))
+        print("Date de début : {} | Date de fin : {}".format(t["starting_date"], t["ending_date"]))
+        print("Round : {} / {}".format(t["current_round"], t["number_of_rounds"]))
+        print("Description : {}".format(t["description"]))
+        print("Statut : {}".format(state))
+        print(CONST_SEPARATOR)
        
     
 
@@ -160,7 +169,7 @@ def display_players_for_tournament():
     with open("database.json", 'r+') as file:
         data = json.load(file)
         id = ask_tournament_id()
-        tournament = [t for t in data["tournaments"] if str(t["id"]) == id]
+        tournament = [t for t in data["tournaments"] if t["id"] == id]
         if not tournament:
             display_tournament_do_not_exist()
         else:
@@ -175,23 +184,22 @@ def display_players_for_tournament():
                     print(f'{p["id"]} | {p["first_name"]} | {p["last_name"]} | {p["birth_date"]} | {p["national_chess_id"]}')
 
 
-def display_matches_for_rounds_of_tournament():
+def display_matches_for_rounds_of_tournament(id):
     """display all rounds for a tournament, and all matches for each rounds"""
     with open("database.json", 'r+') as file:
         data = json.load(file)
-        id = ask_tournament_id()
-        tournament = [t for t in data["tournaments"] if str(t["id"]) == id]   
+        tournament = [t for t in data["tournaments"] if t["id"] == id]   
         if not tournament:
             display_tournament_do_not_exist()
         else:
             tournament = tournament[0]
             print(f"\nListe des rounds du tournois \"{tournament['name']}\" : \n")
-            print(CONST_SEPARATOR)
             rounds = tournament["list_rounds"]
             # Display players registered in tournament
             for round in rounds:
+                print(CONST_SEPARATOR)
                 print(f"{round['name']}, {round['starting_date_hour']} - {round['ending_date_hour']}")
-                print("Résultats aprés match : ")
+                print("\nRésultats aprés match : ")
                 for match in round["matches"]:
                     print(match)
 
@@ -244,7 +252,7 @@ def ask_match_result(match):
 def tournament_inscription_ended():
     print("\nInscriptions au tournois cloturées.")
 
-def tournament_completed():
+def display_tournament_completed():
     print("\nLe tournois est terminé.")
 
 def ask_exit_confirmation():
@@ -257,3 +265,6 @@ def ask_exit_confirmation():
         
 def display_tournament_do_not_exist():
     print("L'identifiant indiqué ne correspond pas à un tournois existant.")
+
+def display_date_incorrect():
+    print("Date incorrecte")
