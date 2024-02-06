@@ -46,7 +46,6 @@ def call_function(choice):
     if choice == "2-4":
         v.display_tournaments()
         v.display_infos_for_tournament(v.ask_tournament_id())
-        
     if choice == "2-5":
         v.display_tournaments()
         id = v.ask_tournament_id()
@@ -63,55 +62,6 @@ def call_function(choice):
     if choice == "1-4" or choice == "2-7" or choice =="3":
         return v.ask_exit_confirmation()
     return True
-
-def resume_tournament_scoring():
-    """resume tournament scoring where it was left
-    
-    will generate next round if tournament not finished
-    """
-    id = v.ask_tournament_id()
-    if is_tournament_existing(id):
-        if not is_tournament_finished(id):
-            if is_last_round_scoring_saved(id):
-                generate_next_round_for_tournament(id)
-            finalize_round_scoring(id)
-        else:
-            v.display_leaderboard(id)
-            v.display_tournament_completed()
-    else:
-        v.display_tournament_do_not_exist
-
-def is_tournament_finished(id):
-    with open(DB_FILE_NAME, 'r+') as file:
-        data = json.load(file)
-        tournament = data[TOURNAMENTS][id]
-    if (tournament["current_round"] >= tournament["number_of_rounds"] and
-        tournament[ROUND_LIST][-1]["ending_date_hour"] != UNDEFINED):
-        return True
-    return False
-
-
-def is_date_correct(date: str):
-    """Check if date follow the layout DD/MM/YYYY and is a valid date. Return True if correct"""
-    is_correct = True
-    if len(date) == 10 and date.count("/") == 2:
-        splited_date = date.split("/")
-        day_date = int(splited_date[0])
-        month_date = int(splited_date[1])
-        year_date = int(splited_date[2])
-        # Check if the date is a correct one
-        try:
-            dt.datetime(year_date, month_date, day_date)
-        except ValueError:
-            is_correct = False
-    else:
-        is_correct = False
-    return is_correct
-
-
-def is_national_chess_id_correct(id: str):
-    """Check if id follow the layout AB12345"""
-    return id[:2].isalpha() and id[5:].isnumeric() and len(id) == 7
 
 
 def create_player():
@@ -141,36 +91,37 @@ def create_player():
                         data['national_chess_id'])
         save(PLAYERS, player)
         return
-
     v.player_creation_issue()
 
 
-def save(model_name, item_to_save):
-    """Save an object in a Json database with a unique ID"""
-    with open(DB_FILE_NAME, 'r+') as file:
-        data = json.load(file)
-        """
-        We take the last gived ID and add 1 to it to make sure no object
-        from the same class are equal by id
-        """
-        if len(data[model_name]) == 0:
-            item_to_save.id = 0
-        else:
-            item_to_save.id = data[model_name][-1]["id"]+1
-        data[model_name].append(item_to_save.__dict__)
-        file.seek(0)
-        json.dump(data, file, indent=4)
-        return item_to_save.id
+def is_date_correct(date: str):
+    """Check if date follow the layout DD/MM/YYYY and is a valid date. Return True if correct"""
+    is_correct = True
+    if len(date) == 10 and date.count("/") == 2:
+        splited_date = date.split("/")
+        day_date = int(splited_date[0])
+        month_date = int(splited_date[1])
+        year_date = int(splited_date[2])
+        # Check if the date is a correct one
+        try:
+            dt.datetime(year_date, month_date, day_date)
+        except ValueError:
+            is_correct = False
+    else:
+        is_correct = False
+    return is_correct
+
+
+def is_national_chess_id_correct(id: str):
+    """Check if id follow the layout AB12345"""
+    return id[:2].isalpha() and id[5:].isnumeric() and len(id) == 7
 
 
 def create_tournament():
-    """Create a tournament
-    
-     Register players, generate first round, then ask for scoring
-    """
+    """Create a tournament"""
     data = v.ask_tournament_info_for_creation()
     if not is_date_correct(data["starting_date"]) or not is_date_correct(data["ending_date"]):
-        display_incorrect_action
+        v.display_incorrect_action()
 
     tournament = Tournament(data['name'],
                             data['place'],
@@ -195,9 +146,39 @@ def create_tournament():
                 v.display_incorrect_action()
     id = save(TOURNAMENTS, tournament)
     generate_next_round_for_tournament(id)
-    finalize_round_scoring(id)
+    resume_tournament_scoring(id)
+
+
+def resume_tournament_scoring(id = None):
+    """Resume tournament scoring where it was left"""
+    if id is None:
+        id = v.ask_tournament_id()
+    if is_tournament_existing(id):
+        if not is_tournament_finished(id):
+            if is_last_round_scoring_saved(id):
+                generate_next_round_for_tournament(id)
+            finalize_round_scoring(id)
+            resume_tournament_scoring(id)
+        else:
+            v.display_leaderboard(id)
+            v.display_tournament_completed()
+    else:
+        v.display_tournament_do_not_exist()
+
+
+def is_tournament_finished(id):
+    """Check if tournament is finished"""
+    with open(DB_FILE_NAME, 'r+') as file:
+        data = json.load(file)
+        tournament = data[TOURNAMENTS][id]
+    if (tournament["current_round"] >= tournament["number_of_rounds"] and
+        tournament[ROUND_LIST][-1]["ending_date_hour"] != UNDEFINED):
+        return True
+    return False
+
 
 def is_last_round_scoring_saved(id):
+    """Check if the last round of matches was saved"""
     with open(DB_FILE_NAME, 'r+') as file:
         data = json.load(file)
         tournament = data[TOURNAMENTS][id]
@@ -215,9 +196,10 @@ def is_last_round_scoring_saved(id):
                 return False
             else:
                 return True
-            
+
 
 def finalize_round_scoring(id):
+    """Ask the user to enter results for matches and save it"""
     with open(DB_FILE_NAME, 'r+') as file:
         data = json.load(file)
         tournament = data[TOURNAMENTS][id]
@@ -231,6 +213,7 @@ def finalize_round_scoring(id):
 
 
 def save_ending_hour_for_round(tournament_id):
+    """Update and save ending hour with actual time for the last round of a given tournament"""
     with open(DB_FILE_NAME, 'r+') as file:
             data = json.load(file)
             tournament = data[TOURNAMENTS][tournament_id]
@@ -240,18 +223,14 @@ def save_ending_hour_for_round(tournament_id):
                 file.seek(0)
                 json.dump(data, file, indent=4)
 
-def generate_next_round_for_tournament(tournament_id = None):
-    if not tournament_id:
-        tournament_id = v.ask_tournament_id()
-    # Generate next round
+
+def generate_next_round_for_tournament(tournament_id):
+    """Check if next round can be generated. If it can it will do it"""
     tournaments = get_tournaments()
     if is_tournament_existing(tournament_id):
-        if is_tournament_finished(tournament_id):
-            v.display_leaderboard(tournament_id)
-            v.display_tournament_completed()
-        else:
-            next_round_number = tournaments[tournament_id]["current_round"] + 1
-            create_round(next_round_number, tournament_id)
+        next_round_number = tournaments[tournament_id]["current_round"] + 1
+        create_round(next_round_number, tournament_id)
+
 
 def create_round(round_number, tournament_id):
     """Create a round for a given tournament"""
@@ -267,6 +246,7 @@ def create_round(round_number, tournament_id):
     except Exception as error:
         print(error)
 
+
 def generate_first_matches(availables_players):
     """Generate first round of matches randomly and return a list of matches"""
     list_matches = []
@@ -278,15 +258,15 @@ def generate_first_matches(availables_players):
         match = ([first_player, 0], [second_player, 0])
         list_matches.append(match)
     return list_matches
-    
 
-def generate_matchups_list(list_2players, round_list):
+
+def generate_matchups_list(list_players, round_list):
     """Return a dict where each player id have a list of opponent already faced in previous rounds"""
     dict_matchups = {key: [] for key in list_players}
     for round in round_list:
         # Generate list of matchups by players id
         matches = round["matches"]
-        print(f"résultats des matchs à l'issue du round {round['name']}")
+        print(f"\nrésultats des matchs à l'issue du round {round['name']}")
         for match in matches:
             print(match)
             dict_matchups[match[0][0]].append(match[1][0])
@@ -304,8 +284,11 @@ def generate_leaderboard(matches):
     list_tuples_player_score.sort(key=sort_player_scores, reverse=True)
     return list_tuples_player_score
 
+
 def sort_player_scores(elem):
+    """Helper to sort a list of [player, score] on its score"""
     return elem[1]
+
 
 def generate_round_matches(leaderboard, dict_matchups):
     """generate all matches for the round. Return a list of match"""
@@ -314,21 +297,23 @@ def generate_round_matches(leaderboard, dict_matchups):
     for player in leaderboard:
         if player not in list_player_already_matched:
             for opponent in leaderboard:
+                #If both opponents haven't met each other
                 if opponent not in list_player_already_matched and player!=opponent:
                     if opponent[0] not in dict_matchups[player[0]]:
                         list_player_already_matched.append(player)
                         list_player_already_matched.append(opponent)
                         list_matches.append((player, opponent))
                         break
-    #If there is some player that can't be matched with a not already met opponent
+    #If there is some player that can't be matched with a not already met opponent we put them by pair in order
     for player in leaderboard:
         for opponent in leaderboard:
+            #Check if players are not already present in a match in our generation process
             if player != opponent and len([match for match in list_matches if player in match or opponent in match]) == 0:
                 list_matches.append((player, opponent))
                 break
     return list_matches
 
-        
+
 def generate_round(tournament_id):
     """Generate and save the matches for the next round to play. Return a list of matches"""
     with open(DB_FILE_NAME, 'r+') as file:
@@ -337,6 +322,7 @@ def generate_round(tournament_id):
         list_players_id = tournament["list_registered_players"].copy()
         list_matches = []
         list_rounds = [ r for r in tournament[ROUND_LIST]]
+        #Generate a dict with each key is a player id, and their value are already met players id in matches
         dict_matchups = generate_matchups_list(list_players_id, tournament[ROUND_LIST])
         # Generate matches for the first round
         if len(list_rounds) == 0:
@@ -357,8 +343,6 @@ def generate_round(tournament_id):
         return list_matches
 
 
-
-
 def get_round_results(list_matches):
     """ask the user for the scoring and return a list of matches with score updated"""
     for match in list_matches:
@@ -366,7 +350,7 @@ def get_round_results(list_matches):
         answer_correct = False
         while not answer_correct:
             answer = input("Resultat : ")
-            if answer.capitalize() in "GDE":
+            if answer.capitalize() in "GDE" and len(answer) == 1:
                 answer_correct = True
                 if answer.capitalize() == "G":
                     match[0][1] += 1
@@ -380,7 +364,24 @@ def get_round_results(list_matches):
     return list_matches
 
 
+def save(model_name, item_to_save):
+    """Save an object in a Json database with a unique ID"""
+    with open(DB_FILE_NAME, 'r+') as file:
+        data = json.load(file)
+        # We take the last gived ID and add 1 to it to make sure no object
+        # from the same class are equal by id
+        if len(data[model_name]) == 0:
+            item_to_save.id = 0
+        else:
+            item_to_save.id = data[model_name][-1]["id"]+1
+        data[model_name].append(item_to_save.__dict__)
+        file.seek(0)
+        json.dump(data, file, indent=4)
+        return item_to_save.id
+
+
 def save_round_in_tournament(item_to_save, tournament_id):
+    """Save round in a given tournament in DB json file"""
     with open(DB_FILE_NAME, 'r+') as file:
         data = json.load(file)
         round_list = data[TOURNAMENTS][tournament_id][ROUND_LIST]
@@ -396,26 +397,34 @@ def save_round_in_tournament(item_to_save, tournament_id):
 
 
 def init_database():
+    """Init the database if not already present"""
     if (not os.path.isfile(DB_FILE_NAME)):
         with open(DB_FILE_NAME, 'w') as fp:
             json.dump(INIT_DB_JSON, fp, indent=4)
 
+
 def is_player_existing(player_id):
+    """Return True if player exist in DB, Return False if not"""
     players = get_players()
     return any(p['id'] == player_id for p in players)
 
 
 def is_tournament_existing(tournament_id):
+    """Return True if tournament exist in DB, Return False if not"""
     tournaments = get_tournaments()
     return any(t['id'] == tournament_id for t in tournaments)
 
+
 def get_tournaments():
+    """Return a list of tournaments stored in DB"""
     with open(DB_FILE_NAME, 'r+') as file:
         data = json.load(file)
         tournaments = data[TOURNAMENTS]
         return tournaments
-    
+
+
 def get_players():
+    """Return a list of players stored in DB"""
     with open(DB_FILE_NAME, 'r+') as file:
         data = json.load(file)
         players = data[PLAYERS]
@@ -434,4 +443,3 @@ def is_player_valid_for_registration(player_id, tournament):
     else:
         print(f"Le joueur avec l'id \"{player_id}\" n'existe pas.")
     return False
-

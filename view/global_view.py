@@ -30,8 +30,8 @@ menu_rapport = {
 }
 
 
-
 def display_welcoming_message():
+    """Display a welcoming message"""
     print("\n*************************************************")
     print("*   Bienvenue, vous utilisez actuellement un    *")
     print("*  logiciel permettant de gérer les tournois du *")
@@ -40,6 +40,7 @@ def display_welcoming_message():
 
 
 def display_action_pannel():
+    """Display a menu to let the user choose from"""
     print(CONST_SEPARATOR)
     print("Que souhaitez vous faire ? (Entrez un chiffre correspondant à votre choix)")
     print("1: Gestion\n2: Rapport\n3: Quitter")
@@ -59,14 +60,18 @@ def display_action_pannel():
     display_incorrect_action()
     return menu_answer
 
+
 def display_incorrect_action():
+    """Inform the user that the input is not correct"""
     print("\n/!\\/!\\/!\\/!\\/!\\/!\\")
     print("Saisie incorrecte")
     print("/!\\/!\\/!\\/!\\/!\\/!\\")
-    return None
+
 
 def player_creation_issue():
+    """The player was not created because of invalid inputs"""
     print("La création du joueur a été annulée car des données sont invalides.")
+
 
 def ask_player_info_for_creation():
     """Ask the player with a form for informations needed to create a Player"""
@@ -86,7 +91,7 @@ def ask_player_info_for_creation():
             is_valid = True
             return data
 
-
+     
 def ask_tournament_info_for_creation():
     """Ask the user informations to create a tournament"""
     is_valid = False
@@ -160,8 +165,6 @@ def display_infos_for_tournament(id):
         print("Description : {}".format(t["description"]))
         print("Statut : {}".format(state))
         print(CONST_SEPARATOR)
-       
-    
 
 
 def display_players_for_tournament():
@@ -205,30 +208,31 @@ def display_matches_for_rounds_of_tournament(id):
 
 
 def display_leaderboard(id):
+    """Display the leaderboard of a tournament"""
     with open(gc.DB_FILE_NAME, 'r+') as file:
             data = json.load(file)
             tournament = data[gc.TOURNAMENTS][id]
             matches = gc.generate_leaderboard(tournament[gc.ROUND_LIST][-1]["matches"])
-
     print(CONST_SEPARATOR)
     print("\nClassement : ")
     for index, rank in enumerate(matches):
         print(f"{index+1} : {rank}")
 
 
-
-
 def display_matches(list_matches):
+    """Display some matches"""
     print("\nMatches de ce round : ")
     for match in list_matches:
         print(match)
 
 
 def ask_player_id():
+    """Ask the user a player id"""
     return input("Entrez l'ID du joueur que vous voulez inscrire au tournois : \nEntrez \"terminer\" pour cloturer les inscriptions au tournois : ")
 
 
 def ask_tournament_id():
+    """Ask the user a tournament id"""
     print(CONST_SEPARATOR)
     while True:
         try:
@@ -239,8 +243,8 @@ def ask_tournament_id():
     return id
 
 
-
 def ask_match_result(match):
+    """Ask the user to score the match&"""
     print(CONST_SEPARATOR)
     print("Quel est le résultat de ce match ?")
     print(match)
@@ -250,21 +254,30 @@ def ask_match_result(match):
 
 
 def tournament_inscription_ended():
+    """Display that inscriptions have ended"""
     print("\nInscriptions au tournois cloturées.")
 
+
 def display_tournament_completed():
+    """Display that the tournament is finished"""
     print("\nLe tournois est terminé.")
 
+
 def ask_exit_confirmation():
+    """Ask the user for a confirmation to exit program"""
     while True:
         result = input("Êtes-vous sur de vouloir quitter le logiciel ? (Y/n)")
         if result.upper() == 'Y':
             return False
         if result.upper() == 'N':
             return True
-        
+
+
 def display_tournament_do_not_exist():
+    """Display that the tournament do not exist"""
     print("L'identifiant indiqué ne correspond pas à un tournois existant.")
 
+
 def display_date_incorrect():
+    """Display that the date is incorrect"""
     print("Date incorrecte")
