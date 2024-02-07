@@ -80,6 +80,10 @@ def create_player():
     if not is_national_chess_id_correct(data['national_chess_id']):
         print("Identifiant national d'échecs incorrect")
         nb_error += 1
+    # Check if national chess id is already registered
+    if is_already_registered(data["national_chess_id"]):
+        print("Un utilisateur inscrit dans la base de donnée détient déja cet identifiant")
+        nb_error += 1
     if nb_error == 0:
         player = Player(data['first_name'],
                         data['last_name'],
@@ -88,6 +92,15 @@ def create_player():
         save(PLAYERS, player)
         return
     v.player_creation_issue()
+
+
+def is_already_registered(chess_id):
+    """Check if chess id is already registered"""
+    players = get_players()
+    for p in players:
+        if p["national_chess_id"] == chess_id:
+            return True
+    return False
 
 
 def is_date_correct(date: str):
