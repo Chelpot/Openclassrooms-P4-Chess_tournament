@@ -52,6 +52,8 @@ def display_action_pannel():
         menu_choice = menu_gestion
     if menu_answer == "2":
         menu_choice = menu_rapport
+    if menu_answer == "3":
+        return menu_answer
     if menu_choice != "None":
         print("Entrez le numéro de l'action que vous souhaitez utiliser : ")
         for option in menu_choice:
@@ -161,19 +163,22 @@ def display_infos_for_tournament(id):
     """display informations for a given tournament."""
     with open(DB_FILE_NAME, 'r+') as file:
         data = json.load(file)
-        t = data["tournaments"][id]
-        if t["current_round"] == t["number_of_rounds"]:
-            state = "Terminé"
+        if not gc.is_tournament_existing(id):
+            display_tournament_do_not_exist()
         else:
-            state = "En cours"
-        print(CONST_SEPARATOR)
-        print("Informations du tournois : ")
-        print("id : {} | Nom : {} | Lieu : {}".format(t["id"], t["name"], t["place"]))
-        print("Date de début : {} | Date de fin : {}".format(t["starting_date"], t["ending_date"]))
-        print("Round : {} / {}".format(t["current_round"], t["number_of_rounds"]))
-        print("Description : {}".format(t["description"]))
-        print("Statut : {}".format(state))
-        print(CONST_SEPARATOR)
+            t = data["tournaments"][id]
+            if t["current_round"] == t["number_of_rounds"]:
+                state = "Terminé"
+            else:
+                state = "En cours"
+            print(CONST_SEPARATOR)
+            print("Informations du tournois : ")
+            print("id : {} | Nom : {} | Lieu : {}".format(t["id"], t["name"], t["place"]))
+            print("Date de début : {} | Date de fin : {}".format(t["starting_date"], t["ending_date"]))
+            print("Round : {} / {}".format(t["current_round"], t["number_of_rounds"]))
+            print("Description : {}".format(t["description"]))
+            print("Statut : {}".format(state))
+            print(CONST_SEPARATOR)
 
 
 def display_players_for_tournament():
@@ -181,6 +186,9 @@ def display_players_for_tournament():
     with open(DB_FILE_NAME, 'r+') as file:
         data = json.load(file)
         tournament_id = ask_tournament_id()
+        if not gc.is_tournament_existing(tournament_id):
+            display_tournament_do_not_exist()
+            return
         tournament = [t for t in data["tournaments"] if t["id"] == tournament_id]
         if not tournament:
             display_tournament_do_not_exist()
@@ -213,10 +221,10 @@ def display_matches_for_rounds_of_tournament(id):
     """display all rounds for a tournament, and all matches for each rounds"""
     with open(DB_FILE_NAME, 'r+') as file:
         data = json.load(file)
-        tournament = [t for t in data["tournaments"] if t["id"] == id]
-        if not tournament:
+        if not gc.is_tournament_existing(id):
             display_tournament_do_not_exist()
         else:
+            tournament = [t for t in data["tournaments"] if t["id"] == id]
             tournament = tournament[0]
             print(f"\nListe des rounds du tournois \"{tournament['name']}\" : \n")
             rounds = tournament["list_rounds"]
@@ -227,18 +235,25 @@ def display_matches_for_rounds_of_tournament(id):
                 print("\nRésultats aprés match : ")
                 for match in round["matches"]:
                     print(match)
+            if gc.is_tournament_finished(id):
+                display_tournament_completed()
 
 
 def display_leaderboard(id):
     """Display the leaderboard of a tournament"""
-    with open(gc.DB_FILE_NAME, 'r+') as file:
-        data = json.load(file)
-        tournament = data[gc.TOURNAMENTS][id]
-        matches = gc.generate_leaderboard(tournament[gc.ROUND_LIST][-1]["matches"])
-    print(CONST_SEPARATOR)
-    print("\nClassement : ")
-    for index, rank in enumerate(matches):
-        print(f"{index+1} : {rank}")
+    if not gc.is_tournament_existing(id):
+        display_tournament_do_not_exist()
+    else:
+        with open(gc.DB_FILE_NAME, 'r+') as file:
+            data = json.load(file)
+            tournament = data[gc.TOURNAMENTS][id]
+            matches = gc.generate_leaderboard(tournament[gc.ROUND_LIST][-1]["matches"])
+        print(CONST_SEPARATOR)
+        print("\nClassement : ")
+        for index, rank in enumerate(matches):
+            print(f"{index+1} : {rank}")
+        if gc.is_tournament_finished(id):
+            display_tournament_completed()
 
 
 def display_matches(list_matches):

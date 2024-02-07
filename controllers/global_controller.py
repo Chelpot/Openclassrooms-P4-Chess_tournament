@@ -50,14 +50,10 @@ def call_function(choice):
         v.display_tournaments()
         tournament_id = v.ask_tournament_id()
         v.display_matches_for_rounds_of_tournament(tournament_id)
-        if is_tournament_finished(tournament_id):
-            v.display_tournament_completed()
     if choice == "2-6":
         v.display_tournaments()
         tournament_id = v.ask_tournament_id()
         v.display_leaderboard(tournament_id)
-        if is_tournament_finished(tournament_id):
-            v.display_tournament_completed()
     # Exit
     if choice == "1-4" or choice == "2-7" or choice == "3":
         return v.ask_exit_confirmation()
@@ -177,19 +173,21 @@ def resume_tournament_scoring(id=None):
             resume_tournament_scoring(id)
         else:
             v.display_leaderboard(id)
-            v.display_tournament_completed()
     else:
         v.display_tournament_do_not_exist()
 
 
 def is_tournament_finished(id):
     """Check if tournament is finished"""
-    with open(DB_FILE_NAME, 'r+') as file:
-        data = json.load(file)
-        tournament = data[TOURNAMENTS][id]
-    if (tournament["current_round"] >= tournament["number_of_rounds"]):
-        if (tournament[ROUND_LIST][-1]["ending_date_hour"] != UNDEFINED):
-            return True
+    if is_tournament_existing(id):
+        with open(DB_FILE_NAME, 'r+') as file:
+            data = json.load(file)
+            tournament = data[TOURNAMENTS][id]
+        if (tournament["current_round"] >= tournament["number_of_rounds"]):
+            if (tournament[ROUND_LIST][-1]["ending_date_hour"] != UNDEFINED):
+                return True
+    else:
+        v.display_tournament_do_not_exist()
     return False
 
 
