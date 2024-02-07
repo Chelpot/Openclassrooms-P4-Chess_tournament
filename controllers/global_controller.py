@@ -187,9 +187,9 @@ def is_tournament_finished(id):
     with open(DB_FILE_NAME, 'r+') as file:
         data = json.load(file)
         tournament = data[TOURNAMENTS][id]
-    if (tournament["current_round"] >= tournament["number_of_rounds"] and
-            tournament[ROUND_LIST][-1]["ending_date_hour"] != UNDEFINED):
-        return True
+    if (tournament["current_round"] >= tournament["number_of_rounds"]):
+        if (tournament[ROUND_LIST][-1]["ending_date_hour"] != UNDEFINED):
+            return True
     return False
 
 
@@ -266,7 +266,7 @@ def create_round(round_number, tournament_id):
 def generate_first_matches(availables_players):
     """Generate first round of matches randomly and return a list of matches"""
     list_matches = []
-    for _ in range(0, len(availables_players)//2):
+    for _ in range(0, len(availables_players) // 2):
         first_player = random.choice(availables_players)
         availables_players.remove(first_player)
         second_player = random.choice(availables_players)
@@ -389,7 +389,7 @@ def save(model_name, item_to_save):
         if len(data[model_name]) == 0:
             item_to_save.id = 0
         else:
-            item_to_save.id = data[model_name][-1]["id"]+1
+            item_to_save.id = data[model_name][-1]["id"] + 1
         data[model_name].append(item_to_save.__dict__)
         file.seek(0)
         json.dump(data, file, indent=4)
@@ -406,7 +406,7 @@ def save_round_in_tournament(item_to_save, tournament_id):
         if len(round_list) == 0:
             item_to_save.id = 0
         else:
-            item_to_save.id = round_list[-1]["id"]+1
+            item_to_save.id = round_list[-1]["id"] + 1
         round_list.append(item_to_save.__dict__)
         file.seek(0)
         json.dump(data, file, indent=4)

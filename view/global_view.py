@@ -7,28 +7,28 @@ CONST_SEPARATOR = "\n*************************************************"
 DB_FILE_NAME = "database.json"
 
 menu_home = {
-            1: 'Gestion',
-            2: 'Rapports',
-            3: 'Quitter',
+    1: 'Gestion',
+    2: 'Rapports',
+    3: 'Quitter',
 
 }
 
 menu_gestion = {
-            1: 'Créer un nouveau joueur',
-            2: 'Créer un nouveau tournois',
-            3: 'Continuer un tournois',
-            4: 'Quitter',
+    1: 'Créer un nouveau joueur',
+    2: 'Créer un nouveau tournois',
+    3: 'Continuer un tournois',
+    4: 'Quitter',
 
 }
 
 menu_rapport = {
-            1: 'Afficher la liste des joueurs',
-            2: 'Afficher la liste des tournois',
-            3: 'Afficher la liste des joueurs inscrits à un tournois',
-            4: 'Afficher les informations pour un tournois',
-            5: 'Afficher la liste des rounds et matches pour un tournois',
-            6: 'Afficher le classement pour un tournois',
-            7: 'Quitter',
+    1: 'Afficher la liste des joueurs',
+    2: 'Afficher la liste des tournois',
+    3: 'Afficher la liste des joueurs inscrits à un tournois',
+    4: 'Afficher les informations pour un tournois',
+    5: 'Afficher la liste des rounds et matches pour un tournois',
+    6: 'Afficher le classement pour un tournois',
+    7: 'Quitter',
 }
 
 
