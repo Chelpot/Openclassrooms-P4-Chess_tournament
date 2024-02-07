@@ -48,18 +48,18 @@ def call_function(choice):
         v.display_infos_for_tournament(v.ask_tournament_id())
     if choice == "2-5":
         v.display_tournaments()
-        id = v.ask_tournament_id()
-        v.display_matches_for_rounds_of_tournament(id)
-        if is_tournament_finished(id):
+        tournament_id = v.ask_tournament_id()
+        v.display_matches_for_rounds_of_tournament(tournament_id)
+        if is_tournament_finished(tournament_id):
             v.display_tournament_completed()
     if choice == "2-6":
         v.display_tournaments()
-        id = v.ask_tournament_id()
-        v.display_leaderboard(id)
-        if is_tournament_finished(id):
+        tournament_id = v.ask_tournament_id()
+        v.display_leaderboard(tournament_id)
+        if is_tournament_finished(tournament_id):
             v.display_tournament_completed()
     # Exit
-    if choice == "1-4" or choice == "2-7" or choice =="3":
+    if choice == "1-4" or choice == "2-7" or choice == "3":
         return v.ask_exit_confirmation()
     return True
 
@@ -71,19 +71,19 @@ def create_player():
     # Check if first name is long enough
     if len(data['first_name']) < 2:
         print("Prénom trop court (2 lettre minimum)")
-        nb_error+=1
+        nb_error += 1
     # Check if last name is long enough
     if len(data['last_name']) < 2:
         print("Nom trop court (2 lettre minimum)")
-        nb_error+=1
+        nb_error += 1
     # Check if birthdate is correct
     if not is_date_correct(data['birth_date']):
         v.display_date_incorrect()
-        nb_error+=1
+        nb_error += 1
     # Check if national chess id is correct
     if not is_national_chess_id_correct(data['national_chess_id']):
         print("Identifiant national d'échecs incorrect")
-        nb_error+=1
+        nb_error += 1
     if nb_error == 0:
         player = Player(data['first_name'],
                         data['last_name'],
@@ -149,7 +149,7 @@ def create_tournament():
                     tournament.list_registered_players.append(player_id)
             else:
                 if player_id.lower() == "terminer":
-                    if len(tournament.list_registered_players)%2 == 1:
+                    if len(tournament.list_registered_players) % 2 == 1:
                         v.display_even_number_player()
                     elif len(tournament.list_registered_players) == 0:
                         v.display_minimum_number_player()
@@ -158,14 +158,14 @@ def create_tournament():
                         v.tournament_inscription_ended()
                 else:
                     v.display_incorrect_action()
-        id = save(TOURNAMENTS, tournament)
-        generate_next_round_for_tournament(id)
-        resume_tournament_scoring(id)
+        tournament_id = save(TOURNAMENTS, tournament)
+        generate_next_round_for_tournament(tournament_id)
+        resume_tournament_scoring(tournament_id)
     else:
         v.tournament_creation_issue()
 
 
-def resume_tournament_scoring(id = None):
+def resume_tournament_scoring(id=None):
     """Resume tournament scoring where it was left"""
     if id is None:
         id = v.ask_tournament_id()
@@ -188,7 +188,7 @@ def is_tournament_finished(id):
         data = json.load(file)
         tournament = data[TOURNAMENTS][id]
     if (tournament["current_round"] >= tournament["number_of_rounds"] and
-        tournament[ROUND_LIST][-1]["ending_date_hour"] != UNDEFINED):
+            tournament[ROUND_LIST][-1]["ending_date_hour"] != UNDEFINED):
         return True
     return False
 
@@ -206,7 +206,7 @@ def is_last_round_scoring_saved(id):
             else:
                 return True
         else:
-            #If first match score are 0 vs 0 then it was not saved
+            # If first match score are 0 vs 0 then it was not saved
             first_match = tournament[ROUND_LIST][0]["matches"][0]
             if first_match[0][1] == 0 == first_match[1][1]:
                 return False
@@ -231,13 +231,13 @@ def finalize_round_scoring(id):
 def save_ending_hour_for_round(tournament_id):
     """Update and save ending hour with actual time for the last round of a given tournament"""
     with open(DB_FILE_NAME, 'r+') as file:
-            data = json.load(file)
-            tournament = data[TOURNAMENTS][tournament_id]
-            list_rounds = tournament[ROUND_LIST]
-            if len(list_rounds) > 0:
-                list_rounds[-1]["ending_date_hour"] = dt.datetime.now().strftime("%d-%m-%Y %H:%M")
-                file.seek(0)
-                json.dump(data, file, indent=4)
+        data = json.load(file)
+        tournament = data[TOURNAMENTS][tournament_id]
+        list_rounds = tournament[ROUND_LIST]
+        if len(list_rounds) > 0:
+            list_rounds[-1]["ending_date_hour"] = dt.datetime.now().strftime("%d-%m-%Y %H:%M")
+            file.seek(0)
+            json.dump(data, file, indent=4)
 
 
 def generate_next_round_for_tournament(tournament_id):
@@ -253,10 +253,10 @@ def create_round(round_number, tournament_id):
     matches = []
     try:
         now = dt.datetime.now().strftime("%d-%m-%Y %H:%M")
-        round = Round(f"Round {round_number}", now, UNDEFINED, matches)
+        my_round = Round(f"Round {round_number}", now, UNDEFINED, matches)
         matches = generate_round(tournament_id)
-        round.matches = matches
-        save_round_in_tournament(round, tournament_id)
+        my_round.matches = matches
+        save_round_in_tournament(my_round, tournament_id)
     except TypeError as error:
         print(error)
     except Exception as error:
@@ -266,7 +266,7 @@ def create_round(round_number, tournament_id):
 def generate_first_matches(availables_players):
     """Generate first round of matches randomly and return a list of matches"""
     list_matches = []
-    for i in range(0, len(availables_players)//2):
+    for _ in range(0, len(availables_players)//2):
         first_player = random.choice(availables_players)
         availables_players.remove(first_player)
         second_player = random.choice(availables_players)
@@ -296,7 +296,7 @@ def generate_leaderboard(matches):
     for match in matches:
         list_tuples_player_score.append(match[0])
         list_tuples_player_score.append(match[1])
-    #Sort the list of [players, scores] by score and descending order
+    # Sort the list of [players, scores] by score and descending order
     list_tuples_player_score.sort(key=sort_player_scores, reverse=True)
     return list_tuples_player_score
 
@@ -308,26 +308,26 @@ def sort_player_scores(elem):
 
 def generate_round_matches(leaderboard, dict_matchups):
     """generate all matches for the round. Return a list of match"""
-    list_matches = []
+    matches = []
     list_player_already_matched = []
     for player in leaderboard:
         if player not in list_player_already_matched:
             for opponent in leaderboard:
-                #If both opponents haven't met each other
-                if opponent not in list_player_already_matched and player!=opponent:
+                # If both opponents haven't met each other
+                if opponent not in list_player_already_matched and player != opponent:
                     if opponent[0] not in dict_matchups[player[0]]:
                         list_player_already_matched.append(player)
                         list_player_already_matched.append(opponent)
-                        list_matches.append((player, opponent))
+                        matches.append((player, opponent))
                         break
-    #If there is some player that can't be matched with a not already met opponent we put them by pair in order
+    # If there is some player that can't be matched with a not already met opponent we put them by pair in order
     for player in leaderboard:
         for opponent in leaderboard:
-            #Check if players are not already present in a match in our generation process
-            if player != opponent and len([match for match in list_matches if player in match or opponent in match]) == 0:
-                list_matches.append((player, opponent))
+            # Check if players are not already present in a match in our generation process
+            if player != opponent and len([match for match in matches if player in match or opponent in match]) == 0:
+                matches.append((player, opponent))
                 break
-    return list_matches
+    return matches
 
 
 def generate_round(tournament_id):
@@ -337,8 +337,8 @@ def generate_round(tournament_id):
         tournament = data[TOURNAMENTS][tournament_id]
         list_players_id = tournament["list_registered_players"].copy()
         list_matches = []
-        list_rounds = [ r for r in tournament[ROUND_LIST]]
-        #Generate a dict with each key is a player id, and their value are already met players id in matches
+        list_rounds = [r for r in tournament[ROUND_LIST]]
+        # Generate a dict with each key is a player id, and their value are already met players id in matches
         dict_matchups = generate_matchups_list(list_players_id, tournament[ROUND_LIST])
         # Generate matches for the first round
         if len(list_rounds) == 0:
@@ -453,7 +453,7 @@ def is_player_valid_for_registration(player_id, tournament):
     if is_player_existing(player_id):
         if player_id in tournament.list_registered_players:
             print(f"Le joueur avec l'id \"{player_id}\" est déja inscrit.")
-        else:            
+        else:
             print(f"Le joueur avec l'id \"{player_id}\" est maintenant inscrit.")
             return True
     else:

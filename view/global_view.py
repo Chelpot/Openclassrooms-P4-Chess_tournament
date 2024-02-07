@@ -1,8 +1,10 @@
 import json
+from tabulate import tabulate
 from operator import itemgetter
 import controllers.global_controller as gc
 
 CONST_SEPARATOR = "\n*************************************************"
+DB_FILE_NAME = "database.json"
 
 menu_home = {
             1: 'Gestion',
@@ -72,6 +74,7 @@ def player_creation_issue():
     """The player was not created because of invalid inputs"""
     print("La création du joueur a été annulée car des données sont invalides.")
 
+
 def tournament_creation_issue():
     """The tournament was not created because of invalid inputs"""
     print("La création du tournois a été annulée car des données sont invalides.")
@@ -95,7 +98,7 @@ def ask_player_info_for_creation():
             is_valid = True
             return data
 
-     
+
 def ask_tournament_info_for_creation():
     """Ask the user informations to create a tournament"""
     is_valid = False
@@ -123,38 +126,40 @@ def ask_tournament_info_for_creation():
 
 def display_players():
     """Display a list of all players in DB sorted by alphabetical order."""
-    with open("database.json", 'r+') as file:
+    with open(DB_FILE_NAME, 'r+') as file:
         data = json.load(file)
         players = data["players"]
-        print("\nListe des joueurs : \n")
-        print("ID | Prénom | Nom | Date de naissance | Identifiant national d'échec")
-        print(CONST_SEPARATOR)
-        for p in players:
-            print(f'{p["id"]} | {p["first_name"]} | {p["last_name"]} | {p["birth_date"]} | {p["national_chess_id"]}')
-        print(CONST_SEPARATOR)
+        list_players = [list(d.values()) for d in players]
+        display_tabulate_players(list_players)
 
 
 def display_tournaments():
     """Display a list of all tournaments."""
-    with open("database.json", 'r+') as file:
+    with open(DB_FILE_NAME, 'r+') as file:
         data = json.load(file)
         tournaments = data["tournaments"]
-        print("\nListe des tournois : \n")
-        print("ID | Nom | Lieu | Date de début | Date de fin | Description | Statut")
-        print(CONST_SEPARATOR)
-        status = ""
-        for t in tournaments:
-            if t["current_round"] == t["number_of_rounds"]:
-                state = "Terminé"
+        list_tournament = [list(d.values()) for d in tournaments]
+        for t in list_tournament:
+            if t[5] == t[6]:
+                t.append("Terminé")
             else:
-                state = "En cours"
-            print(f'{t["id"]} | {t["name"]} | {t["starting_date"]} | {t["ending_date"]} | {t["description"]} | {state}')
+                t.append("En cours")
+            # We exclude data we do not want to be displayed
+            # Description / List of rounds / List of players registered
+            t.pop(4)
+            t.pop(6)
+            t.pop(6)
+
+        print("\nListe des tournois : \n")
+        headers = ["Nom", "Lieu", "Date de début", "Date de fin", "Round N°", "Total round", "ID", "Statut"]
+        print(CONST_SEPARATOR)
+        print(tabulate(list_tournament, headers=headers, tablefmt="mixed_grid"))
         print(CONST_SEPARATOR)
 
 
 def display_infos_for_tournament(id):
     """display informations for a given tournament."""
-    with open("database.json", 'r+') as file:
+    with open(DB_FILE_NAME, 'r+') as file:
         data = json.load(file)
         t = data["tournaments"][id]
         if t["current_round"] == t["number_of_rounds"]:
@@ -173,29 +178,42 @@ def display_infos_for_tournament(id):
 
 def display_players_for_tournament():
     """display a list of all the players for a given tournament, the players will be sorted by alphabetical order."""
-    with open("database.json", 'r+') as file:
+    with open(DB_FILE_NAME, 'r+') as file:
         data = json.load(file)
-        id = ask_tournament_id()
-        tournament = [t for t in data["tournaments"] if t["id"] == id]
+        tournament_id = ask_tournament_id()
+        tournament = [t for t in data["tournaments"] if t["id"] == tournament_id]
         if not tournament:
             display_tournament_do_not_exist()
         else:
             tournament = tournament[0]
             print(f"\nListe des joueurs du tournois \"{tournament['name']}\" : \n")
-            print("ID | Prénom | Nom | Date de naissance | Identifiant national d'échec")
             print(CONST_SEPARATOR)
             players = sorted(data["players"], key=itemgetter('last_name'))
             # Display players registered in tournament
             for p in players:
                 if p["id"] in tournament["list_registered_players"]:
-                    print(f'{p["id"]} | {p["first_name"]} | {p["last_name"]} | {p["birth_date"]} | {p["national_chess_id"]}')
+                    list_players = [list(d.values()) for d in players]
+            display_tabulate_players(list_players)
+
+
+def display_tabulate_players(list_players):
+    # We sort by alphabetical order on first name
+    list_players = sorted(list_players, key=itemgetter(1))
+    # We swap column to have first_name in first place
+    for item in list_players:
+        tmp = item[0]
+        item[0] = item[1]
+        item[1] = tmp
+    headers = ["Nom", "Prénom", "Date de naissance", "Identifiant national d'échec", "ID"]
+    print("\nListe des joueurs : \n")
+    print(tabulate(list_players, headers=headers, tablefmt="mixed_grid"))
 
 
 def display_matches_for_rounds_of_tournament(id):
     """display all rounds for a tournament, and all matches for each rounds"""
-    with open("database.json", 'r+') as file:
+    with open(DB_FILE_NAME, 'r+') as file:
         data = json.load(file)
-        tournament = [t for t in data["tournaments"] if t["id"] == id]   
+        tournament = [t for t in data["tournaments"] if t["id"] == id]
         if not tournament:
             display_tournament_do_not_exist()
         else:
@@ -214,9 +232,9 @@ def display_matches_for_rounds_of_tournament(id):
 def display_leaderboard(id):
     """Display the leaderboard of a tournament"""
     with open(gc.DB_FILE_NAME, 'r+') as file:
-            data = json.load(file)
-            tournament = data[gc.TOURNAMENTS][id]
-            matches = gc.generate_leaderboard(tournament[gc.ROUND_LIST][-1]["matches"])
+        data = json.load(file)
+        tournament = data[gc.TOURNAMENTS][id]
+        matches = gc.generate_leaderboard(tournament[gc.ROUND_LIST][-1]["matches"])
     print(CONST_SEPARATOR)
     print("\nClassement : ")
     for index, rank in enumerate(matches):
@@ -232,7 +250,8 @@ def display_matches(list_matches):
 
 def ask_player_id():
     """Ask the user a player id"""
-    return input("Entrez l'ID du joueur que vous voulez inscrire au tournois : \nEntrez \"terminer\" pour cloturer les inscriptions au tournois : ")
+    return input("Entrez l'ID du joueur que vous voulez inscrire au tournois"
+                 "\nEntrez \"terminer\" pour cloturer les inscriptions au tournois : ")
 
 
 def ask_tournament_id():
@@ -240,11 +259,11 @@ def ask_tournament_id():
     print(CONST_SEPARATOR)
     while True:
         try:
-            id = int(input("\nSaisissez l'identifiant du tournois : "))
+            tournament_id = int(input("\nSaisissez l'identifiant du tournois : "))
             break
         except ValueError:
             print("Vous n'avez pas saisi un identifiant valide.")
-    return id
+    return tournament_id
 
 
 def ask_match_result(match):
@@ -286,13 +305,16 @@ def display_date_incorrect():
     """Display that the date is incorrect"""
     print("\nDate incorrecte")
 
+
 def display_even_number_player():
     """Display that there must be a even number of player registered"""
     print("\nIl faut impérativement un nombre de joueur pair pour le bon déroulement du tournois.")
 
+
 def display_number_of_round_minimum():
     """Display that there must be at least 1 round"""
     print('\nNombre de round doit être supérieur à 0')
+
 
 def display_minimum_number_player():
     """Display that there must be at least 2 players"""
