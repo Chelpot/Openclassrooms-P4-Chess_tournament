@@ -1,4 +1,5 @@
 import json
+import copy
 from tabulate import tabulate
 from operator import itemgetter
 import controllers.global_controller as gc
@@ -233,8 +234,7 @@ def display_matches_for_rounds_of_tournament(id):
                 print(CONST_SEPARATOR)
                 print(f"{round['name']}, {round['starting_date_hour']} - {round['ending_date_hour']}")
                 print("\nRésultats aprés match : ")
-                for match in round["matches"]:
-                    print(match)
+                display_matches(round["matches"])
             if gc.is_tournament_finished(id):
                 display_tournament_completed()
 
@@ -247,19 +247,26 @@ def display_leaderboard(id):
         with open(gc.DB_FILE_NAME, 'r+') as file:
             data = json.load(file)
             tournament = data[gc.TOURNAMENTS][id]
-            matches = gc.generate_leaderboard(tournament[gc.ROUND_LIST][-1]["matches"])
+            matches = gc.generate_leaderboard(tournament[gc.ROUND_LIST])
         print(CONST_SEPARATOR)
         print("\nClassement : ")
         for index, rank in enumerate(matches):
-            print(f"{index+1} : {rank}")
+            name = "{} {}".format(data[gc.PLAYERS][rank[0]]["last_name"], data[gc.PLAYERS][rank[0]]["last_name"])
+            print(f"{index+1} : {name} - {rank[1]} points")
         if gc.is_tournament_finished(id):
             display_tournament_completed()
 
 
 def display_matches(list_matches):
     """Display some matches"""
+    matches = copy.deepcopy(list_matches)
+    players = gc.get_players()
+
     print("\nMatches de ce round : ")
-    for match in list_matches:
+    for match in matches:
+        # We replace Player ID with their name for more clarity
+        match[0][0] = players[match[0][0]]["last_name"]
+        match[1][0] = players[match[1][0]]["last_name"]
         print(match)
 
 
@@ -285,7 +292,7 @@ def ask_match_result(match):
     """Ask the user to score the match&"""
     print(CONST_SEPARATOR)
     print("Quel est le résultat de ce match ?")
-    print(match)
+    display_matches([match])
     print("G pour victoire du joueur de gauche.")
     print("D pour victoire du joueur de droite.")
     print("E pour égalité.")
@@ -328,7 +335,7 @@ def display_even_number_player():
 
 def display_number_of_round_minimum():
     """Display that there must be at least 1 round"""
-    print('\nNombre de round doit être supérieur à 0')
+    print('\nNombre de round doit être supérieur à 1')
 
 
 def display_minimum_number_player():
