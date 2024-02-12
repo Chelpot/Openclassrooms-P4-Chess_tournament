@@ -199,9 +199,11 @@ def display_players_for_tournament():
             print(CONST_SEPARATOR)
             players = sorted(data["players"], key=itemgetter('last_name'))
             # Display players registered in tournament
+            list_players = []
             for p in players:
                 if p["id"] in tournament["list_registered_players"]:
-                    list_players = [list(d.values()) for d in players]
+                    list_players.append(p)
+            list_players = [list(d.values()) for d in list_players]
             display_tabulate_players(list_players)
 
 

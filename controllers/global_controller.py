@@ -320,7 +320,7 @@ def generate_leaderboard(rounds):
                 dict_player_total_score[id_playerp2] = scorep2
             else:
                 dict_player_total_score[id_playerp2] = dict_player_total_score.get(id_playerp2) + scorep2
-    
+
     list_players_score = []
     for elem in list(dict_player_total_score.items()):
         list_players_score.append([elem[0], elem[1]])
