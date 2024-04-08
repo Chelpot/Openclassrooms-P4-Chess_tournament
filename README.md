@@ -41,3 +41,9 @@ Pour lancer le programme il suffit de taper :
 ```
 python main.py
 ```
+
+## Génération de rapport Flake8
+Exécutez la commande suivante et vous trouverez dans le répertoire **flake8_rapport** le fichier Html faisant rapport des erreurs.
+```
+flake8 --format=html --htmldir=flake8_rapport --max-line-length=119 --exclude venv --ignore=E501,F401 
+```
