@@ -253,7 +253,7 @@ def display_leaderboard(id):
         print(CONST_SEPARATOR)
         print("\nClassement : ")
         for index, rank in enumerate(matches):
-            name = "{} {}".format(data[gc.PLAYERS][rank[0]]["last_name"], data[gc.PLAYERS][rank[0]]["last_name"])
+            name = "{} {}".format(data[gc.PLAYERS][rank[0]]["last_name"], data[gc.PLAYERS][rank[0]]["first_name"])
             print(f"{index+1} : {name} - {rank[1]} points")
         if gc.is_tournament_finished(id):
             display_tournament_completed()
@@ -267,8 +267,8 @@ def display_matches(list_matches):
     print("\nMatches de ce round : ")
     for match in matches:
         # We replace Player ID with their name for more clarity
-        match[0][0] = players[match[0][0]]["last_name"]
-        match[1][0] = players[match[1][0]]["last_name"]
+        match[0][0] = players[match[0][0]]["last_name"] + " " + players[match[0][0]]["first_name"]
+        match[1][0] = players[match[1][0]]["last_name"] + " " + players[match[1][0]]["first_name"]
         print(match)
 
 
