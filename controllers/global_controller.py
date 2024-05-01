@@ -20,12 +20,15 @@ INIT_DB_JSON = {"players": [], "tournaments": []}
 
 def launch():
     """Main loop running the program"""
-    running = True
-    v.display_welcoming_message()
-    init_database()
-    while running:
-        choice = v.display_action_pannel()
-        running = call_function(choice)
+    Player.save(Player("Test", "Testt", "20/05/1999", "nj14874"))
+    for p in Player.load_all():
+        print(p.id)
+    # running = True
+    # v.display_welcoming_message()
+    # init_database()
+    # while running:
+    #     choice = v.display_action_pannel()
+    #     running = call_function(choice)
 
 
 def call_function(choice):
@@ -66,11 +69,11 @@ def create_player():
     data = v.ask_player_info_for_creation()
     nb_error = 0
     # Check if first name is long enough
-    if len(data['first_name']) < 2:
+    if len(data['first_name']) <= 2:
         print("Prénom trop court (2 lettre minimum)")
         nb_error += 1
     # Check if last name is long enough
-    if len(data['last_name']) < 2:
+    if len(data['last_name']) <= 2:
         print("Nom trop court (2 lettre minimum)")
         nb_error += 1
     # Check if birthdate is correct
@@ -107,7 +110,7 @@ def is_already_registered(chess_id):
 def is_date_correct(date: str):
     """Check if date follow the layout DD/MM/YYYY and is a valid date. Return True if correct"""
     is_correct = True
-    if len(date) == 10 and date.count("/") == 2:
+    if len(date) == 10 and date.count("/") == 2: 
         splited_date = date.split("/")
         day_date = int(splited_date[0])
         month_date = int(splited_date[1])
@@ -289,7 +292,7 @@ def generate_first_matches(availables_players):
     return list_matches
 
 
-def generate_matchups_list(list_players, round_list):
+def generate_matchups_dict(list_players, round_list):
     """Return a dict where each player id have a list of opponent already faced in previous rounds"""
     dict_matchups = {key: [] for key in list_players}
     for round in round_list:
@@ -370,7 +373,7 @@ def generate_round(tournament_id):
         list_matches = []
         list_rounds = [r for r in tournament[ROUND_LIST]]
         # Generate a dict with each key is a player id, and their value are already met players id in matches
-        dict_matchups = generate_matchups_list(list_players_id, tournament[ROUND_LIST])
+        dict_matchups = generate_matchups_dict(list_players_id, tournament[ROUND_LIST])
         # Generate matches for the first round
         if len(list_rounds) == 0:
             list_matches = generate_first_matches(list_players_id)
