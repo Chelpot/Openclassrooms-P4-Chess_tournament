@@ -1,7 +1,7 @@
 import json
 import copy
 from tabulate import tabulate
-from operator import itemgetter
+from operator import attrgetter, itemgetter
 import controllers.global_controller as gc
 
 CONST_SEPARATOR = "\n*************************************************"
@@ -127,149 +127,120 @@ def ask_tournament_info_for_creation():
             return None
 
 
-def display_players():
+def display_players(list_players):
     """Display a list of all players in DB sorted by alphabetical order."""
-    with open(DB_FILE_NAME, 'r+') as file:
-        data = json.load(file)
-        players = data["players"]
-        list_players = [list(d.values()) for d in players]
-        display_tabulate_players(list_players)
-
-
-def display_tournaments():
-    """Display a list of all tournaments."""
-    with open(DB_FILE_NAME, 'r+') as file:
-        data = json.load(file)
-        tournaments = data["tournaments"]
-        list_tournament = [list(d.values()) for d in tournaments]
-        for t in list_tournament:
-            if t[5] == t[6]:
-                t.append("Terminé")
-            else:
-                t.append("En cours")
-            # We exclude data we do not want to be displayed
-            # Description / List of rounds / List of players registered
-            t.pop(4)
-            t.pop(6)
-            t.pop(6)
-
-        print("\nListe des tournois : \n")
-        headers = ["Nom", "Lieu", "Date de début", "Date de fin", "Round N°", "Total round", "ID", "Statut"]
-        print(CONST_SEPARATOR)
-        print(tabulate(list_tournament, headers=headers, tablefmt="mixed_grid"))
-        print(CONST_SEPARATOR)
-
-
-def display_infos_for_tournament(id):
-    """display informations for a given tournament."""
-    with open(DB_FILE_NAME, 'r+') as file:
-        data = json.load(file)
-        if not gc.is_tournament_existing(id):
-            display_tournament_do_not_exist()
-        else:
-            t = data["tournaments"][id]
-            if t["current_round"] == t["number_of_rounds"]:
-                state = "Terminé"
-            else:
-                state = "En cours"
-            print(CONST_SEPARATOR)
-            print("Informations du tournois : ")
-            print("id : {} | Nom : {} | Lieu : {}".format(t["id"], t["name"], t["place"]))
-            print("Date de début : {} | Date de fin : {}".format(t["starting_date"], t["ending_date"]))
-            print("Round : {} / {}".format(t["current_round"], t["number_of_rounds"]))
-            print("Description : {}".format(t["description"]))
-            print("Statut : {}".format(state))
-            print(CONST_SEPARATOR)
-
-
-def display_players_for_tournament():
-    """display a list of all the players for a given tournament, the players will be sorted by alphabetical order."""
-    with open(DB_FILE_NAME, 'r+') as file:
-        data = json.load(file)
-        tournament_id = ask_tournament_id()
-        if not gc.is_tournament_existing(tournament_id):
-            display_tournament_do_not_exist()
-            return
-        tournament = [t for t in data["tournaments"] if t["id"] == tournament_id]
-        if not tournament:
-            display_tournament_do_not_exist()
-        else:
-            tournament = tournament[0]
-            print(f"\nListe des joueurs du tournois \"{tournament['name']}\" : \n")
-            print(CONST_SEPARATOR)
-            players = sorted(data["players"], key=itemgetter('last_name'))
-            # Display players registered in tournament
-            list_players = []
-            for p in players:
-                if p["id"] in tournament["list_registered_players"]:
-                    list_players.append(p)
-            list_players = [list(d.values()) for d in list_players]
-            display_tabulate_players(list_players)
-
-
-def display_tabulate_players(list_players):
     # We sort by alphabetical order on first name
-    list_players = sorted(list_players, key=itemgetter(1))
-    # We swap column to have first_name in first place
-    for item in list_players:
-        tmp = item[0]
-        item[0] = item[1]
-        item[1] = tmp
+    clean_list = []
+    for p in list_players:
+        clean_list.append([
+            p.last_name,
+            p.first_name,
+            p.birth_date,
+            p.national_chess_id,
+            p.id
+        ])
+
     headers = ["Nom", "Prénom", "Date de naissance", "Identifiant national d'échec", "ID"]
     print("\nListe des joueurs : \n")
-    print(tabulate(list_players, headers=headers, tablefmt="mixed_grid"))
+    print(tabulate(clean_list, headers=headers, tablefmt="mixed_grid"))
 
 
-def display_matches_for_rounds_of_tournament(id):
+def display_tournaments(list_tournament):
+    """Display a list of all tournaments sorted by ID."""
+    clean_list = []
+
+    for t in list_tournament:
+        status = "Terminé" if t.current_round == t.number_of_rounds else "En cours"
+        clean_list.append([
+            t.name,
+            t.place,
+            t.starting_date,
+            t.ending_date,
+            t.current_round,
+            t.number_of_rounds,
+            t.id,
+            status,
+        ])
+
+    print("\nListe des tournois : \n")
+    headers = ["Nom", "Lieu", "Date de début", "Date de fin", "Round N°", "Total round", "ID", "Statut"]
+    print(CONST_SEPARATOR)
+    print(tabulate(clean_list, headers=headers, tablefmt="mixed_grid"))
+    print(CONST_SEPARATOR)
+
+
+def display_infos_for_tournament(t):
+    """display informations for a given tournament."""
+    status = "Terminé" if t.current_round == t.number_of_rounds else "En cours"
+    tournament = [
+        ["ID", t.id],
+        ["Nom", t.name],
+        ["Lieu", t.place],
+        ["Date de début/Fin", f"{t.starting_date} ------ {t.ending_date}"],
+        ["Round", f"{t.current_round} / {t.number_of_rounds}"],
+        ["Statut", status],
+        ["Description", t.description],
+    ]
+    print("\nInformations du tournoi :\n")
+    print(tabulate(tournament, tablefmt="mixed_grid"))
+
+
+def display_players_for_tournament(tournament, players):
+    """display a list of all the players for a given tournament, the players will be sorted by alphabetical order."""
+    print(f"\nListe des joueurs du tournois \"{tournament.name}\" : \n")
+    print(CONST_SEPARATOR)
+    display_players(players)
+
+
+def display_matches_for_rounds_of_tournament(tournament, players):
     """display all rounds for a tournament, and all matches for each rounds"""
-    with open(DB_FILE_NAME, 'r+') as file:
-        data = json.load(file)
-        if not gc.is_tournament_existing(id):
-            display_tournament_do_not_exist()
-        else:
-            tournament = [t for t in data["tournaments"] if t["id"] == id]
-            tournament = tournament[0]
-            print(f"\nListe des rounds du tournois \"{tournament['name']}\" : \n")
-            rounds = tournament["list_rounds"]
-            # Display players registered in tournament
-            for round in rounds:
-                print(CONST_SEPARATOR)
-                print(f"{round['name']}, {round['starting_date_hour']} - {round['ending_date_hour']}")
-                print("\nRésultats aprés match : ")
-                display_matches(round["matches"])
-            if gc.is_tournament_finished(id):
-                display_tournament_completed()
-
-
-def display_leaderboard(id):
-    """Display the leaderboard of a tournament"""
-    if not gc.is_tournament_existing(id):
-        display_tournament_do_not_exist()
-    else:
-        with open(gc.DB_FILE_NAME, 'r+') as file:
-            data = json.load(file)
-            tournament = data[gc.TOURNAMENTS][id]
-            matches = gc.generate_leaderboard(tournament[gc.ROUND_LIST])
+    print(f"\nListe des rounds du tournois \"{tournament.name}\" : \n")
+    rounds = tournament.list_rounds
+    # Display players registered in tournament
+    for round in rounds:
         print(CONST_SEPARATOR)
-        print("\nClassement : ")
-        for index, rank in enumerate(matches):
-            name = "{} {}".format(data[gc.PLAYERS][rank[0]]["last_name"], data[gc.PLAYERS][rank[0]]["first_name"])
-            print(f"{index+1} : {name} - {rank[1]} points")
-        if gc.is_tournament_finished(id):
-            display_tournament_completed()
+        clean_list = [
+            ["Nom", round.name],
+            ["Heure de début", round.starting_date_hour],
+            ["Heure de fin", round.ending_date_hour],
+        ]
+        print(tabulate(clean_list, tablefmt="mixed_grid"))
+        print("\nRésultats aprés match : ")
+        display_matches(round.matches, players)
 
 
-def display_matches(list_matches):
+def display_leaderboard(ranks):
+    """Display the leaderboard of a tournament"""
+    print(CONST_SEPARATOR)
+    print("\nClassement : ")
+    for line in ranks:
+        print(line)
+
+
+def display_matches(list_matches, players):
     """Display some matches"""
     matches = copy.deepcopy(list_matches)
-    players = gc.get_players()
-
     print("\nMatches de ce round : ")
-    for match in matches:
-        # We replace Player ID with their name for more clarity
-        match[0][0] = players[match[0][0]]["last_name"] + " " + players[match[0][0]]["first_name"]
-        match[1][0] = players[match[1][0]]["last_name"] + " " + players[match[1][0]]["first_name"]
-        print(match)
+    players_by_id = {p.id: p for p in players}
+    clean_list = []
+    for i, match in enumerate(matches, start=1):
+        p1 = players_by_id.get(match[0][0])
+        p2 = players_by_id.get(match[1][0])
+        name1 = f"{p1.last_name} {p1.first_name}"
+        name2 = f"{p2.last_name} {p2.first_name}"
+        score1 = match[0][1]
+        score2 = match[1][1]
+
+        clean_list.append([
+            f"Match {i}",
+            name1,
+            score1,
+            name2,
+            score2
+        ])
+
+    headers = ["#", "Joueur 1", "Gain au score", "Joueur 2", "Gain au score"]
+    print(tabulate(clean_list, headers=headers, tablefmt="mixed_grid"))
 
 
 def ask_player_id():
@@ -300,16 +271,6 @@ def ask_match_result(match):
     print("E pour égalité.")
 
 
-def tournament_inscription_ended():
-    """Display that inscriptions have ended"""
-    print("\nInscriptions au tournois cloturées.")
-
-
-def display_tournament_completed():
-    """Display that the tournament is finished"""
-    print("\nLe tournois est terminé.")
-
-
 def ask_exit_confirmation():
     """Ask the user for a confirmation to exit program"""
     while True:
@@ -318,6 +279,16 @@ def ask_exit_confirmation():
             return False
         if result.upper() == 'N':
             return True
+
+
+def tournament_inscription_ended():
+    """Display that inscriptions have ended"""
+    print("\nInscriptions au tournois cloturées.")
+
+
+def display_tournament_completed():
+    """Display that the tournament is finished"""
+    print("\nLe tournois est terminé.")
 
 
 def display_tournament_do_not_exist():
