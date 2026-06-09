@@ -51,10 +51,7 @@ def call_function(choice):
         v.display_tournaments(Tournament.load_all())
         tournament_id = v.ask_tournament_id()
         tournament = Tournament.load_with_id(tournament_id)
-        list_player = []
-        for p in tournament.list_registered_players:
-            list_player.append(Player.load_with_id(p))
-        v.display_players_for_tournament(tournament, list_player)
+        v.display_players_for_tournament(tournament)
 
     if choice == "2-4":
         v.display_tournaments(Tournament.load_all())
@@ -66,15 +63,13 @@ def call_function(choice):
         v.display_tournaments(Tournament.load_all())
         tournament_id = v.ask_tournament_id()
         tournament = Tournament.load_with_id(tournament_id)
-        list_player = []
-        for p in tournament.list_registered_players:
-            list_player.append(Player.load_with_id(p))
-        v.display_matches_for_rounds_of_tournament(tournament, list_player)
+        v.display_matches_for_rounds_of_tournament(tournament)
         
     if choice == "2-6":
-        v.display_tournaments()
+        v.display_tournaments(Tournament.load_all())
         tournament_id = v.ask_tournament_id()
-        v.display_leaderboard(tournament_id)
+        tournament = Tournament.load_with_id(tournament_id)
+        v.display_leaderboard(tournament.generate_leaderboard())
     # Exit
     if choice == "1-4" or choice == "2-7" or choice == "3":
         return v.ask_exit_confirmation()
@@ -244,30 +239,6 @@ def generate_matchups_dict(list_players, round_list):
     return dict_matchups
 
 
-def generate_leaderboard(rounds):
-    """Generate a list of players with their score sorted by score in descending order"""
-    dict_player_total_score = {}
-    for r in rounds:
-        for m in r.matches:
-            id_player1 = m[0][0]
-            id_playerp2 = m[1][0]
-            scorep1 = m[0][1]
-            scorep2 = m[1][1]
-            if dict_player_total_score.get(id_player1) is None:
-                dict_player_total_score[id_player1] = scorep1
-            else:
-                dict_player_total_score[id_player1] = dict_player_total_score.get(id_player1) + scorep1
-            if dict_player_total_score.get(id_playerp2) is None:
-                dict_player_total_score[id_playerp2] = scorep2
-            else:
-                dict_player_total_score[id_playerp2] = dict_player_total_score.get(id_playerp2) + scorep2
-
-    list_players_score = []
-    for elem in list(dict_player_total_score.items()):
-        list_players_score.append([elem[0], elem[1]])
-        list_players_score.sort(key=sort_player_scores, reverse=True)
-    return list_players_score
-
 
 def sort_player_scores(elem):
     """Helper to sort a list of [player, score] on its score"""
@@ -435,16 +406,19 @@ def display_matches_for_rounds_of_tournament(id):
 
 def display_leaderboard(id):
     if not is_tournament_existing(id):
+        print("OUAIS")
         v.display_tournament_do_not_exist()
     else:
-        with open(DB_FILE_NAME, 'r+') as file:   
-            data = json.load(file)
-            tournament = data[TOURNAMENTS][id]
-            matches = generate_leaderboard(tournament[ROUND_LIST])
-            list_ranking = []
-            for index, rank in enumerate(matches):
-                name = "{} {}".format(data[PLAYERS][rank[0]]["last_name"], data[PLAYERS][rank[0]]["first_name"])
-                list_ranking.append((f"{index+1} : {name} - {rank[1]} points"))
-        v.display_leaderboard(list_ranking)
-        if is_tournament_finished(id):
-            v.display_tournament_completed()
+        tournament = Tournament.load_with_id(id)
+        matches = generate_leaderboard(tournament.list_rounds)
+        print(matches)
+        print("OUAIS")
+        list_ranking = []
+        for index, rank in enumerate(matches):
+            name = "{} {}".format(data[PLAYERS][rank[0]]["last_name"], data[PLAYERS][rank[0]]["first_name"])
+            list_ranking.append((f"{index+1} : {name} - {rank[1]} points"))
+        print(list_ranking)
+        return list_ranking
+    if is_tournament_finished(id):
+        print("OUAIS")
+        v.display_tournament_completed()

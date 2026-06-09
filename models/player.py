@@ -7,11 +7,12 @@ PLAYERS = "players"
 
 class Player:
     """A chess player"""
-    def __init__(self, first_name, last_name, birth_date, national_chess_id):
+    def __init__(self, first_name, last_name, birth_date, national_chess_id, id):
         self._first_name = first_name
         self._last_name = last_name
         self._birth_date = birth_date
         self._national_chess_id = national_chess_id
+        self.id = id
 
     @property
     def first_name(self):
@@ -63,8 +64,7 @@ class Player:
             players = data[PLAYERS]
             list_players = []
             for p in players:
-                player = Player(p["first_name"], p["last_name"], p["birth_date"], p["national_chess_id"])
-                player.id = p["id"]
+                player = Player.from_dict(p)
                 list_players.append(player)
             list_players = sorted(list_players, key=attrgetter("last_name", "first_name"))
             return list_players
@@ -83,6 +83,16 @@ class Player:
     def is_player_existing(id):
         players = Player.load_all()
         return any(p.id == id for p in players)
+    
+    @classmethod
+    def from_dict(cls, data):
+        return cls(
+            first_name=data["first_name"],
+            last_name=data["last_name"],
+            birth_date=data["birth_date"],
+            national_chess_id=data["national_chess_id"],
+            id=data["id"]
+        )
 
     @staticmethod
     def save_new(player):

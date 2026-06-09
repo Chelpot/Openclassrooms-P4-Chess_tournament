@@ -36,9 +36,9 @@ class Tournament:
                                     t['description']
                                     )
                 tournament.current_round = t['current_round']
-                tournament.list_rounds = [Round.from_dict(r) for r in t["list_rounds"]
-]
-                tournament.list_registered_players = t['list_registered_players']
+                tournament.list_rounds = [Round.from_dict(r) for r in t["list_rounds"]]
+                all_players = Player.load_all()
+                tournament.list_registered_players = [p for p in all_players if p.id in t['list_registered_players']]
                 tournament.id = t["id"]
                 list_tournaments.append(tournament)
             list_tournaments = sorted(list_tournaments, key=attrgetter("id", "name"), reverse=True)
@@ -89,3 +89,35 @@ class Tournament:
         else:
             print(f"Le joueur avec l'id \"{player_id}\" n'existe pas.")
         return False
+
+    def generate_leaderboard(self):
+        """Generate a list of players with their score sorted by score in descending order"""
+        dict_player_total_score = {}
+        
+        for r in self.list_rounds:
+            for m in r.matches:
+                id_playerp1 = m[0][0]
+                scorep1 = m[0][1]
+
+                id_playerp2 = m[1][0]
+                scorep2 = m[1][1]
+
+                dict_player_total_score[id_playerp1] = dict_player_total_score.get(id_playerp1, 0) + scorep1
+                dict_player_total_score[id_playerp2] = dict_player_total_score.get(id_playerp2, 0) + scorep2
+
+        list_players_score = list(dict_player_total_score.items())
+        list_players_score.sort(key=lambda player_score: player_score[1], reverse=True)
+
+        list_players_score_final = []
+        for rank, line in enumerate(list_players_score, start=1):
+            player = Player.load_with_id(line[0])
+            list_players_score_final.append(
+                (
+                    player.id,
+                    f"{player.first_name} {player.last_name}",
+                    line[1],
+                    rank
+                )
+            )
+
+        return list_players_score_final

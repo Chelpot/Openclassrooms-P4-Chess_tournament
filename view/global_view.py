@@ -184,15 +184,13 @@ def display_infos_for_tournament(t):
     print("\nInformations du tournoi :\n")
     print(tabulate(tournament, tablefmt="mixed_grid"))
 
-
-def display_players_for_tournament(tournament, players):
+def display_players_for_tournament(tournament):
     """display a list of all the players for a given tournament, the players will be sorted by alphabetical order."""
     print(f"\nListe des joueurs du tournois \"{tournament.name}\" : \n")
     print(CONST_SEPARATOR)
-    display_players(players)
-
-
-def display_matches_for_rounds_of_tournament(tournament, players):
+    display_players(tournament.list_registered_players)
+    
+def display_matches_for_rounds_of_tournament(tournament):
     """display all rounds for a tournament, and all matches for each rounds"""
     print(f"\nListe des rounds du tournois \"{tournament.name}\" : \n")
     rounds = tournament.list_rounds
@@ -206,15 +204,15 @@ def display_matches_for_rounds_of_tournament(tournament, players):
         ]
         print(tabulate(clean_list, tablefmt="mixed_grid"))
         print("\nRésultats aprés match : ")
-        display_matches(round.matches, players)
+        display_matches(round.matches, tournament.list_registered_players)
 
 
 def display_leaderboard(ranks):
     """Display the leaderboard of a tournament"""
     print(CONST_SEPARATOR)
     print("\nClassement : ")
-    for line in ranks:
-        print(line)
+    print(tabulate(ranks, headers=["ID", "Joueur", "Score", "Rang"], tablefmt="mixed_grid"))
+
 
 
 def display_matches(list_matches, players):
